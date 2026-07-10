@@ -125,12 +125,18 @@ mahabharata). Add a world = a new `worlds/<id>.json` + register the id in `setup
   + a **launch page**; PWA manifest. Responsive (desktop + phone verified in both modes).
 
 ## 3D renderer + media pipeline
-- `board3d.js`: `WebGLRenderer` (ACESFilmic, exposure 1.18) + an **EffectComposer bloom chain**
-  (`UnrealBloomPass` 0.7/0.7/0.82) so emissive pawns/Charkoni halo. 81 cross tiles as one
-  **InstancedMesh** (per-instance colour: track cloth, seat-tinted home lanes/gates, castle tiles);
-  12 emissive castle stars; a glowing Charkoni medallion + ring. Pawns are a beehive `LatheGeometry`
-  with a per-player emissive `MeshStandardMaterial`; movable pawns pulse emissive + scale. Orbit via
-  custom pointer/pinch/wheel; `fitRadius` keeps the whole cross in frame; tap = raycast pick.
+- `board3d.js` is **art-directed per world** from a `theme3d` block in each world JSON:
+  `surface`/`tileScheme` (dharma indigo cloth · mahabharata red/ivory **checker** stone court ·
+  ancient-india **sandstone**), `pawn` sculpt (**stupa** beehive+finial · **chariot** bronze mace ·
+  **pillar** Ashokan column+chakra — all keep the player colour + emissive), `charkoni`
+  (**lotus** petals · **fire** ember orb · Ashoka **chakra** wheel), `props` at the arm tips (**diya
+  lamps** · **torches** · **pillars**), and `particles` (**gold motes** · rising **embers** ·
+  drifting **dust**). Add a world's 3D look = its `theme3d`; the style ids map to builders in board3d.js.
+- **3D cowrie throw:** six real shell meshes **tumble from above and settle** to the engine's
+  predetermined result (`shells[i]` → mouth-up = flat side up), animated in the render loop
+  (`throwCowries3d`/`stepCowries`), then rest on the board. `WebGLRenderer` (ACESFilmic, exposure
+  1.18) + an **EffectComposer bloom chain** so emissive pawns/Charkoni/fires halo; flickering fires
+  + animated particles + a slowly turning Charkoni in `tick`.
 - **Media generators** (Azure, AAD via `az login`, endpoint `ai-contosohub530569751908`):
   `tooling/gen_intro.py` → Sora-2 **text-to-video** (`/openai/v1/videos?api-version=preview`,
   `Bearer` token, ~1–2 min each, sequential) → `assets/<world>/intro.mp4`. `tooling/gen_music.py`

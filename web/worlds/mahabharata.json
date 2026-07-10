@@ -16,6 +16,18 @@
     "muted": "#c09a72",
     "font": "'Georgia', 'Noto Serif', serif"
   },
+  "theme3d": {
+    "surface": "stone",
+    "tileScheme": "checker",
+    "pawn": "chariot",
+    "charkoni": "fire",
+    "props": "torches",
+    "particles": "embers",
+    "ground": "#140705",
+    "glow": "#ff7a34",
+    "tileA": "#7a2a1c",
+    "tileB": "#e6d6b4"
+  },
   "voice": { "web": "en-IN", "azure": "en-IN-Arjun:DragonHDLatestNeural" },
   "avatarLabel": "Your warrior",
   "characters": [

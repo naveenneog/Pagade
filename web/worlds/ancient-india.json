@@ -16,6 +16,18 @@
     "muted": "#bda27a",
     "font": "'Georgia', 'Noto Serif', serif"
   },
+  "theme3d": {
+    "surface": "sandstone",
+    "tileScheme": "sandstone",
+    "pawn": "pillar",
+    "charkoni": "chakra",
+    "props": "pillars",
+    "particles": "dust",
+    "ground": "#140d05",
+    "glow": "#f0c464",
+    "tileA": "#7a5a30",
+    "tileB": "#93743e"
+  },
   "voice": { "web": "en-IN", "azure": "en-IN-Neerja:DragonHDLatestNeural" },
   "avatarLabel": "Your traveller",
   "characters": [

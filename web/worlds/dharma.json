@@ -16,6 +16,16 @@
     "muted": "#b7a179",
     "font": "'Georgia', 'Noto Serif', serif"
   },
+  "theme3d": {
+    "surface": "cloth",
+    "tileScheme": "cloth",
+    "pawn": "stupa",
+    "charkoni": "lotus",
+    "props": "lamps",
+    "particles": "motes",
+    "ground": "#0c0716",
+    "glow": "#ffcf7a"
+  },
   "voice": { "web": "en-IN", "azure": "en-IN-Arjun:DragonHDLatestNeural" },
   "avatarLabel": "Your soul",
   "characters": [

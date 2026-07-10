@@ -69,14 +69,14 @@ composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
 // lights
-const amb = new THREE.AmbientLight(0xffffff, 0.72);
-const key = new THREE.DirectionalLight(0xfff0d8, 1.35);
+const amb = new THREE.AmbientLight(0xffffff, 0.95);
+const key = new THREE.DirectionalLight(0xfff0d8, 1.5);
 key.position.set(6, 14, 8);
-const rim = new THREE.DirectionalLight(0x88a0ff, 0.5);
+const rim = new THREE.DirectionalLight(0x88a0ff, 0.55);
 rim.position.set(-8, 5, -6);
-const hemi = new THREE.HemisphereLight(0xffe9c0, 0x120a06, 0.45);
-const glowLight = new THREE.PointLight(0xffdca0, 0.9, 34, 2);
-glowLight.position.set(0, 4.5, 1);
+const hemi = new THREE.HemisphereLight(0xffe9c0, 0x241018, 0.6);
+const glowLight = new THREE.PointLight(0xffdca0, 1.2, 44, 2);
+glowLight.position.set(0, 5, 1);
 scene.add(amb, key, rim, hemi, glowLight);
 
 const boardGroup = new THREE.Group();
@@ -115,100 +115,287 @@ function classify(r, c) {
   return { kind: home ? 'home' : 'track', seat, castle: geo.castles.has(id) };
 }
 
-// ---------- board build ----------
-let tileMesh = null, castleGroup = new THREE.Group(), charkoni = null;
+// ---------- art direction ----------
+let art = {};
+let charkoni = null, charkoniFire = null, particles = null, partData = null;
+let flickerMeshes = [];
+let cowrieMeshes = [];
+const cowrieAnims = [];
 function hexColor(hex) { return new THREE.Color(hex); }
 function mix(a, b, t) { return a.clone().lerp(b, t); }
+let tileMesh = null;
+
+// pawn silhouette profiles (radius, height) per world style
+const PAWN_PROFILE = {
+  stupa: [ // temple beehive + dome
+    [0.00, 0.00], [0.40, 0.00], [0.42, 0.035], [0.37, 0.075], [0.41, 0.115], [0.35, 0.175],
+    [0.37, 0.225], [0.30, 0.295], [0.31, 0.345], [0.23, 0.42], [0.235, 0.46], [0.15, 0.53],
+    [0.14, 0.565], [0.07, 0.61], [0.03, 0.635], [0.0, 0.645],
+  ],
+  chariot: [ // squat, faceted bronze warrior/mace body
+    [0.00, 0.00], [0.44, 0.00], [0.46, 0.05], [0.30, 0.10], [0.22, 0.16], [0.20, 0.34],
+    [0.24, 0.40], [0.20, 0.46], [0.12, 0.50], [0.0, 0.51],
+  ],
+  pillar: [ // tall fluted Ashokan shaft
+    [0.00, 0.00], [0.40, 0.00], [0.42, 0.05], [0.24, 0.10], [0.185, 0.16], [0.17, 0.60],
+    [0.185, 0.64], [0.16, 0.68], [0.0, 0.69],
+  ],
+};
+
+// ---------- board build (art-directed) ----------
+function baseTileColor(scheme, cell, cloth, tileA, tileB) {
+  if (scheme === 'checker') return ((cell.r + cell.c) % 2 === 0 ? tileA : tileB).clone().multiplyScalar(1.25);
+  if (scheme === 'sandstone') { const v = 1.1 + 0.28 * (((cell.r * 7 + cell.c * 13) % 5) / 5); return tileA.clone().multiplyScalar(v); }
+  return cloth.clone().multiplyScalar(1.5);
+}
 
 function buildBoard() {
-  // clear previous
   boardGroup.clear();
+  cowrieMeshes = []; cowrieAnims.length = 0; particles = null; partData = null; charkoni = null; charkoniFire = null; flickerMeshes = [];
+  art = world.theme3d || {};
+  const scheme = art.tileScheme || 'cloth';
+  const surf = art.surface || 'cloth';
+  const cloth = hexColor(world.theme.cloth || '#3a2413');
+  const boardBase = hexColor(world.theme.board || '#2a1a10');
+  const tileA = hexColor(art.tileA || world.theme.cloth || '#3a2413');
+  const tileB = hexColor(art.tileB || world.theme.board || '#2a1a10');
+  const accent = hexColor(world.theme.accent || '#e8b64a');
+  const castleCol = hexColor(world.theme.castle || '#f0c862');
+  const glow = hexColor(art.glow || world.theme.accent || '#ffcf7a');
+
   const cells = [];
   for (let r = 0; r < GRID; r++) for (let c = 0; c < GRID; c++) { const info = classify(r, c); if (info) cells.push({ r, c, info }); }
 
-  const cloth = hexColor(world.theme.cloth || '#3a2413');
-  const boardBase = hexColor(world.theme.board || '#2a1a10');
-  const tileGeo = new THREE.BoxGeometry(0.92, 0.16, 0.92);
-  const tileMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0.05 });
+  const matParams = surf === 'stone' ? { roughness: 0.5, metalness: 0.28 }
+    : surf === 'sandstone' ? { roughness: 0.82, metalness: 0.06 } : { roughness: 0.9, metalness: 0.03 };
+  const tileGeo = new THREE.BoxGeometry(0.94, 0.16, 0.94);
+  const tileMat = new THREE.MeshStandardMaterial({ vertexColors: true, ...matParams });
   tileMesh = new THREE.InstancedMesh(tileGeo, tileMat, cells.length);
   const dummy = new THREE.Object3D();
   const col = new THREE.Color();
   cells.forEach((cell, i) => {
     const p = vec(cell.r, cell.c, 0);
-    dummy.position.set(p.x, 0, p.z);
-    dummy.updateMatrix();
+    dummy.position.set(p.x, 0, p.z); dummy.updateMatrix();
     tileMesh.setMatrixAt(i, dummy.matrix);
-    let base;
     const info = cell.info;
-    if (info.kind === 'core') base = hexColor(world.theme.accent).multiplyScalar(0.95);
-    else if (info.kind === 'gate') base = mix(boardBase, hexColor(seatColor[info.seat] || '#caa06a'), 0.6);
-    else if (info.kind === 'home') base = mix(cloth.clone().multiplyScalar(1.1), hexColor(seatColor[info.seat] || '#caa06a'), seatColor[info.seat] ? 0.6 : 0.15);
-    else base = cell.info.castle ? mix(cloth, hexColor(world.theme.castle || '#f0c862'), 0.4) : cloth.clone().multiplyScalar(1.12);
+    const seatTint = hexColor(seatColor[info.seat] || '#caa06a');
+    let base;
+    if (info.kind === 'core') base = glow.clone().multiplyScalar(0.9);
+    else if (info.kind === 'gate') base = mix(boardBase, seatTint, 0.62);
+    else if (info.kind === 'home') {
+      base = seatColor[info.seat] ? mix(baseTileColor(scheme, cell, cloth, tileA, tileB), seatTint, 0.58)
+        : baseTileColor(scheme, cell, cloth, tileA, tileB).multiplyScalar(0.9);
+    } else {
+      base = baseTileColor(scheme, cell, cloth, tileA, tileB);
+      if (info.castle) base = mix(base, castleCol, 0.4);
+    }
     tileMesh.setColorAt(i, col.copy(base));
   });
   tileMesh.instanceColor.needsUpdate = true;
-  tileMesh.receiveShadow = true;
   boardGroup.add(tileMesh);
 
   // castle star markers (emissive -> bloom)
-  castleGroup = new THREE.Group();
   const starGeo = new THREE.OctahedronGeometry(0.12, 0);
-  const starMat = new THREE.MeshStandardMaterial({ color: 0x2a1a0a, emissive: hexColor(world.theme.castle || '#f0c862'), emissiveIntensity: 1.3, roughness: 0.3, metalness: 0.4 });
-  for (const id of geo.castles) { const { row, col: cc } = cellRC(id); const s = new THREE.Mesh(starGeo, starMat); const p = vec(row, cc, 0.24); s.position.copy(p); castleGroup.add(s); }
-  boardGroup.add(castleGroup);
+  const starMat = new THREE.MeshStandardMaterial({ color: 0x2a1a0a, emissive: castleCol, emissiveIntensity: 1.3, roughness: 0.3, metalness: 0.4 });
+  for (const id of geo.castles) { const { row, col: cc } = cellRC(id); const s = new THREE.Mesh(starGeo, starMat); s.position.copy(vec(row, cc, 0.24)); boardGroup.add(s); }
 
-  // Charkoni medallion (glowing home)
-  const cGeo = new THREE.CylinderGeometry(1.35, 1.5, 0.14, 40);
-  const cMat = new THREE.MeshStandardMaterial({ color: hexColor(world.theme.accent), emissive: hexColor(world.theme.accent), emissiveIntensity: 0.6, roughness: 0.35, metalness: 0.6 });
-  charkoni = new THREE.Mesh(cGeo, cMat);
-  charkoni.position.set(0, 0.12, 0);
-  boardGroup.add(charkoni);
-  const ringGeo = new THREE.TorusGeometry(1.5, 0.06, 12, 48);
-  const ringMat = new THREE.MeshStandardMaterial({ color: hexColor(world.theme.castle || '#f0c862'), emissive: hexColor(world.theme.castle || '#f0c862'), emissiveIntensity: 1.2, roughness: 0.3, metalness: 0.5 });
-  const ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.rotation.x = Math.PI / 2; ring.position.y = 0.2; boardGroup.add(ring);
-
-  // a soft board slab underneath
-  const slab = new THREE.Mesh(new THREE.BoxGeometry(15.6, 0.4, 15.6), new THREE.MeshStandardMaterial({ color: boardBase.clone().multiplyScalar(0.6), roughness: 0.95 }));
+  // board slab + a wide ground plane for the environment
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(15.8, 0.4, 15.8), new THREE.MeshStandardMaterial({ color: boardBase.clone().multiplyScalar(0.6), roughness: 0.95 }));
   slab.position.y = -0.22; boardGroup.add(slab);
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(60, 48), new THREE.MeshStandardMaterial({ color: hexColor(art.ground || world.theme.bg || '#0c0716'), roughness: 1, metalness: 0 }));
+  ground.rotation.x = -Math.PI / 2; ground.position.y = -0.42; boardGroup.add(ground);
+
+  buildCharkoni(art.charkoni || 'lotus', accent, castleCol, glow);
+  buildProps(art.props || 'lamps', glow);
+  buildParticles(art.particles || 'motes', glow);
+  buildCowries3d();
 }
 
-// ---------- pawns (glowing beehive) ----------
-const BEEHIVE = [
-  [0.00, 0.00], [0.40, 0.00], [0.42, 0.035], [0.37, 0.075], [0.41, 0.115], [0.35, 0.175],
-  [0.37, 0.225], [0.30, 0.295], [0.31, 0.345], [0.23, 0.42], [0.235, 0.46], [0.15, 0.53],
-  [0.14, 0.565], [0.07, 0.61], [0.03, 0.635], [0.0, 0.645],
-];
-const pawnGeo = new THREE.LatheGeometry(BEEHIVE.map(([x, y]) => new THREE.Vector2(x, y)), 32);
-pawnGeo.computeVertexNormals();
-const topGeo = new THREE.SphereGeometry(0.06, 16, 12);
-
-function makePawn(color) {
-  const c = hexColor(color);
-  const mat = new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.45, roughness: 0.32, metalness: 0.35 });
+function buildCharkoni(style, accent, castleCol, glow) {
   const g = new THREE.Group();
-  const body = new THREE.Mesh(pawnGeo, mat);
-  const bead = new THREE.Mesh(topGeo, mat);
-  bead.position.y = 0.7;
-  g.add(body, bead);
+  if (style === 'fire') {
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.5, 0.16, 40), new THREE.MeshStandardMaterial({ color: 0x2a1410, roughness: 0.7, metalness: 0.4 }));
+    disc.position.y = 0.1; g.add(disc);
+    charkoniFire = new THREE.Mesh(new THREE.SphereGeometry(0.58, 24, 18), new THREE.MeshStandardMaterial({ color: glow, emissive: glow, emissiveIntensity: 1.7, roughness: 0.4 }));
+    charkoniFire.position.y = 0.38; charkoniFire.userData.baseEmissive = 1.7; flickerMeshes.push(charkoniFire); g.add(charkoniFire);
+  } else if (style === 'chakra') {
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(1.45, 1.55, 0.14, 40), new THREE.MeshStandardMaterial({ color: accent.clone().multiplyScalar(0.9), emissive: accent, emissiveIntensity: 0.35, roughness: 0.5, metalness: 0.3 }));
+    disc.position.y = 0.1; g.add(disc);
+    const wheelMat = new THREE.MeshStandardMaterial({ color: castleCol, emissive: castleCol, emissiveIntensity: 1.1, roughness: 0.3, metalness: 0.5 });
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(1.15, 0.07, 12, 48), wheelMat); rim.rotation.x = Math.PI / 2; rim.position.y = 0.22; g.add(rim);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.1, 20), wheelMat); hub.position.y = 0.24; g.add(hub);
+    const spokeGeo = new THREE.BoxGeometry(0.04, 0.06, 1.05);
+    for (let i = 0; i < 12; i++) { const s = new THREE.Mesh(spokeGeo, wheelMat); s.position.y = 0.22; s.rotation.y = (i / 12) * Math.PI * 2; g.add(s); }
+  } else { // lotus
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.45, 0.14, 40), new THREE.MeshStandardMaterial({ color: accent, emissive: accent, emissiveIntensity: 0.6, roughness: 0.35, metalness: 0.6 }));
+    disc.position.y = 0.12; g.add(disc);
+    const petalMat = new THREE.MeshStandardMaterial({ color: castleCol, emissive: castleCol, emissiveIntensity: 0.9, roughness: 0.35, metalness: 0.4 });
+    const petalGeo = new THREE.ConeGeometry(0.28, 0.75, 4); petalGeo.scale(1, 1, 0.5);
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; const pe = new THREE.Mesh(petalGeo, petalMat); pe.position.set(Math.cos(a) * 1.2, 0.22, Math.sin(a) * 1.2); pe.rotation.set(Math.PI / 2.2, -a, 0); g.add(pe); }
+    const ringM = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.06, 12, 48), petalMat); ringM.rotation.x = Math.PI / 2; ringM.position.y = 0.2; g.add(ringM);
+  }
+  charkoni = g; boardGroup.add(g);
+}
+
+const TIPS = [[14, 7], [7, 14], [0, 7], [7, 0]];
+function buildProps(style, glow) {
+  const g = new THREE.Group();
+  const flameMat = new THREE.MeshStandardMaterial({ color: glow, emissive: glow, emissiveIntensity: 2.4, roughness: 0.5 });
+  for (const [tr, tc] of TIPS) {
+    const base = vec(tr, tc, 0);
+    const dir = new THREE.Vector3(base.x, 0, base.z).normalize().multiplyScalar(0.9); // push just beyond the tip
+    const x = base.x + dir.x, z = base.z + dir.z;
+    if (style === 'torches') {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 1.6, 10), new THREE.MeshStandardMaterial({ color: 0x2a1810, roughness: 0.8 }));
+      post.position.set(x, 0.8, z); g.add(post);
+      const fire = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 12), flameMat.clone()); fire.position.set(x, 1.7, z); fire.userData.baseEmissive = 2.4; flickerMeshes.push(fire); g.add(fire);
+    } else if (style === 'pillars') {
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 1.5, 14), new THREE.MeshStandardMaterial({ color: 0x9a7a44, roughness: 0.7 }));
+      shaft.position.set(x, 0.75, z); g.add(shaft);
+      const bell = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.35, 16, 1, true), new THREE.MeshStandardMaterial({ color: 0xb08a4e, roughness: 0.6, side: THREE.DoubleSide })); bell.position.set(x, 1.6, z); bell.rotation.x = Math.PI; g.add(bell);
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12), new THREE.MeshStandardMaterial({ color: glow, emissive: glow, emissiveIntensity: 0.8, roughness: 0.4, metalness: 0.4 })); cap.position.set(x, 1.85, z); g.add(cap);
+    } else { // lamps (diya)
+      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.16, 0.16, 16), new THREE.MeshStandardMaterial({ color: 0x6a4a26, roughness: 0.5, metalness: 0.5 }));
+      bowl.position.set(x, 0.28, z); g.add(bowl);
+      const fire = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 12), flameMat.clone()); fire.scale.set(1, 1.5, 1); fire.position.set(x, 0.5, z); fire.userData.baseEmissive = 2.4; fire.userData.baseScaleY = 1.5; flickerMeshes.push(fire); g.add(fire);
+    }
+  }
+  boardGroup.add(g);
+}
+
+function buildParticles(style, glow) {
+  const N = MOBILE ? 40 : 80;
+  const pos = new Float32Array(N * 3);
+  partData = { vy: new Float32Array(N), vx: new Float32Array(N), style };
+  for (let i = 0; i < N; i++) {
+    pos[i * 3] = (Math.random() - 0.5) * 22;
+    pos[i * 3 + 1] = Math.random() * 9;
+    pos[i * 3 + 2] = (Math.random() - 0.5) * 22;
+    if (style === 'embers') { partData.vy[i] = 0.008 + Math.random() * 0.02; partData.vx[i] = (Math.random() - 0.5) * 0.004; }
+    else if (style === 'dust') { partData.vy[i] = (Math.random() - 0.5) * 0.004; partData.vx[i] = 0.006 + Math.random() * 0.01; }
+    else { partData.vy[i] = 0.003 + Math.random() * 0.006; partData.vx[i] = (Math.random() - 0.5) * 0.003; }
+  }
+  const geoP = new THREE.BufferGeometry();
+  geoP.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({ color: glow, size: style === 'embers' ? 0.13 : style === 'dust' ? 0.1 : 0.09, transparent: true, opacity: style === 'dust' ? 0.5 : 0.8, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true });
+  particles = new THREE.Points(geoP, mat);
+  boardGroup.add(particles);
+}
+
+// ---------- pawns (per-world sculpts) ----------
+const _pawnGeoCache = {};
+function pawnGeoFor(style) {
+  if (_pawnGeoCache[style]) return _pawnGeoCache[style];
+  const seg = style === 'chariot' ? 10 : style === 'pillar' ? 20 : 28;
+  const g = new THREE.LatheGeometry((PAWN_PROFILE[style] || PAWN_PROFILE.stupa).map(([x, y]) => new THREE.Vector2(x, y)), seg);
+  g.computeVertexNormals();
+  _pawnGeoCache[style] = g;
+  return g;
+}
+const _finialGeo = new THREE.SphereGeometry(0.06, 14, 10);
+const _spikeGeo = new THREE.ConeGeometry(0.05, 0.14, 12);
+const _maceGeo = new THREE.IcosahedronGeometry(0.18, 0);
+const _diskGeo = new THREE.CylinderGeometry(0.19, 0.19, 0.05, 18);
+const _torusGeo = new THREE.TorusGeometry(0.14, 0.03, 8, 20);
+
+function makePawn(color, style, accent) {
+  const c = hexColor(color);
+  const gold = hexColor(accent || '#f0c862');
+  const metal = style === 'chariot' ? 0.75 : style === 'pillar' ? 0.15 : 0.35;
+  const rough = style === 'chariot' ? 0.3 : style === 'pillar' ? 0.6 : 0.32;
+  const emI = style === 'chariot' ? 0.6 : style === 'pillar' ? 0.4 : 0.5;
+  const mat = new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: emI, roughness: rough, metalness: metal });
+  const goldMat = new THREE.MeshStandardMaterial({ color: gold, emissive: gold, emissiveIntensity: 0.7, roughness: 0.3, metalness: 0.6 });
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(pawnGeoFor(style), mat);
+  g.add(body);
+  if (style === 'chariot') {
+    const mace = new THREE.Mesh(_maceGeo, mat); mace.position.y = 0.6; g.add(mace);
+    const spike = new THREE.Mesh(_spikeGeo, goldMat); spike.position.y = 0.82; g.add(spike);
+  } else if (style === 'pillar') {
+    const bell = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.16, 16, 1, true), goldMat); bell.position.y = 0.7; bell.rotation.x = Math.PI; g.add(bell);
+    const abacus = new THREE.Mesh(_diskGeo, goldMat); abacus.position.y = 0.8; g.add(abacus);
+    const chakra = new THREE.Mesh(_torusGeo, goldMat); chakra.position.y = 0.9; chakra.rotation.x = Math.PI / 2; g.add(chakra);
+  } else { // stupa
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat); dome.position.y = 0.6; g.add(dome);
+    const finial = new THREE.Mesh(_finialGeo, goldMat); finial.position.y = 0.72; g.add(finial);
+  }
   g.userData.mat = mat;
-  g.userData.baseEmissive = 0.45;
-  g.scale.setScalar(0.86);
+  g.userData.baseEmissive = emI;
+  g.userData.baseScale = style === 'pillar' ? 0.82 : 0.86;
+  g.scale.setScalar(g.userData.baseScale);
   return g;
 }
 
 function buildPawns() {
   Object.values(pieceGroups).forEach((g) => scene.remove(g));
   pieceGroups = {};
+  const style = (world.theme3d && world.theme3d.pawn) || 'stupa';
+  const accent = world.theme.accent;
   for (const pl of state.players) {
     for (let pi = 0; pi < pl.pieces.length; pi++) {
-      const g = makePawn(pl.color);
+      const g = makePawn(pl.color, style, accent);
       g.userData.player = pl.idx; g.userData.piece = pi; g.userData.seat = pl.seat;
       scene.add(g);
       pieceGroups[`${pl.idx}-${pi}`] = g;
     }
   }
   placeAll();
+}
+
+// ---------- 3D cowrie shells (the throw) ----------
+// resting spots in a loose arc in front of the Charkoni (toward South / the camera)
+const COWRIE_LAND = [[-1.6, 2.6], [-1.0, 3.3], [-0.35, 2.7], [0.35, 3.3], [1.0, 2.7], [1.6, 3.3]];
+const _shellGeo = (() => { const g = new THREE.SphereGeometry(0.5, 18, 14); g.scale(0.34, 0.2, 0.48); return g; })();
+const _slitGeo = new THREE.BoxGeometry(0.05, 0.05, 0.36);
+function makeCowrie() {
+  const g = new THREE.Group();
+  const shell = new THREE.Mesh(_shellGeo, new THREE.MeshStandardMaterial({ color: 0xefe4cf, roughness: 0.45, metalness: 0.05 }));
+  g.add(shell);
+  const slit = new THREE.Mesh(_slitGeo, new THREE.MeshStandardMaterial({ color: 0x2a1a0e, roughness: 0.85 }));
+  slit.position.y = -0.09; g.add(slit);
+  g.visible = false;
+  return g;
+}
+function buildCowries3d() {
+  cowrieMeshes = [];
+  for (let i = 0; i < 6; i++) { const c = makeCowrie(); boardGroup.add(c); cowrieMeshes.push(c); }
+}
+// tumble the 6 cowries onto the board, settling to a predetermined result (shells[i]=1 -> mouth up)
+function throwCowries3d(shells) {
+  return new Promise((resolve) => {
+    cowrieAnims.length = 0;
+    if (!cowrieMeshes.length) { resolve(); return; }
+    let pending = 6;
+    const done = () => { if (--pending <= 0) resolve(); };
+    for (let i = 0; i < 6; i++) {
+      const c = cowrieMeshes[i];
+      c.visible = true;
+      const [lx, lz] = COWRIE_LAND[i];
+      const from = new THREE.Vector3(lx * 0.35 + (Math.random() - 0.5), 4 + Math.random() * 1.6, lz - 1.4 + (Math.random() - 0.5));
+      const to = new THREE.Vector3(lx + (Math.random() - 0.5) * 0.25, 0.2, lz + (Math.random() - 0.5) * 0.25);
+      c.position.copy(from);
+      cowrieAnims.push({
+        c, from, to,
+        rx: shells[i] ? Math.PI : 0,            // flat/slit side up == mouth up
+        ry: Math.random() * Math.PI * 2,
+        spinX: (2 + Math.floor(Math.random() * 3)) * Math.PI * 2,
+        spinZ: (Math.random() - 0.5) * 6 * Math.PI,
+        t0: performance.now() + i * 55, dur: 640 + Math.random() * 180, hop: 1.5, res: done,
+      });
+    }
+  });
+}
+function stepCowries(now) {
+  for (let i = cowrieAnims.length - 1; i >= 0; i--) {
+    const a = cowrieAnims[i];
+    const k = Math.min(1, Math.max(0, (now - a.t0) / a.dur));
+    const e = 1 - Math.pow(1 - k, 3);
+    a.c.position.lerpVectors(a.from, a.to, e);
+    a.c.position.y += Math.sin(Math.min(1, k) * Math.PI) * a.hop * (1 - k * 0.35);
+    a.c.rotation.set(a.rx + (1 - e) * a.spinX, a.ry, (1 - e) * a.spinZ);
+    if (k >= 1) { a.c.position.copy(a.to); a.c.rotation.set(a.rx, a.ry, 0); cowrieAnims.splice(i, 1); a.res(); }
+  }
 }
 
 function pawn(player, piece) { return pieceGroups[`${player}-${piece}`]; }
@@ -358,7 +545,9 @@ async function onThrow() {
   cowriesEl.classList.add('rolling');
   const t = throwCowries();
   currentThrow = t;
-  await delay(420);
+  statusEl.textContent = `${whoLabel()} casts the cowries…`;
+  await throwCowries3d(t.shells);
+  audio.sfx('step');
   renderCowries(t.shells);
   cowriesEl.classList.remove('rolling');
   throwValue.textContent = t.value; throwGrace.hidden = !t.grace;
@@ -504,14 +693,34 @@ function newGame() { stopSpeak(); loadWorld(worldSelect.value).catch((e) => (sta
 // ---------- render loop ----------
 function tick(now) {
   stepTweens(now);
+  stepCowries(now);
   // pulse movable pawns
-  const pulse = 0.45 + 0.5 * (0.5 + 0.5 * Math.sin(now * 0.006));
+  const s = 0.5 + 0.5 * Math.sin(now * 0.006);
   for (const [k, g] of Object.entries(pieceGroups)) {
     const on = movableSet.has(k);
-    g.userData.mat.emissiveIntensity = on ? pulse : g.userData.baseEmissive;
-    g.scale.setScalar(on ? 0.86 + 0.05 * (0.5 + 0.5 * Math.sin(now * 0.006)) : 0.86);
+    const base = g.userData.baseScale || 0.86;
+    g.userData.mat.emissiveIntensity = on ? (g.userData.baseEmissive + 0.5 * s) : g.userData.baseEmissive;
+    g.scale.setScalar(on ? base + 0.06 * s : base);
   }
-  if (charkoni) charkoni.rotation.y = now * 0.0002;
+  // ambient particles
+  if (particles && partData) {
+    const p = particles.geometry.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      let y = p.getY(i) + partData.vy[i];
+      let x = p.getX(i) + partData.vx[i];
+      if (partData.style === 'dust') { if (x > 11) x = -11; if (x < -11) x = 11; if (y > 9 || y < 0) y = Math.random() * 2; }
+      else { if (y > 9) { y = 0; x = (Math.random() - 0.5) * 22; } }
+      p.setX(i, x); p.setY(i, y);
+    }
+    p.needsUpdate = true;
+  }
+  // flicker fires
+  for (const f of flickerMeshes) {
+    const fl = 0.7 + 0.5 * Math.sin(now * 0.02 + f.position.x * 3) + 0.15 * Math.sin(now * 0.05 + f.position.z);
+    f.material.emissiveIntensity = (f.userData.baseEmissive || 2) * Math.max(0.5, fl);
+    f.scale.y = (f.userData.baseScaleY || 1) * (0.92 + 0.16 * Math.max(0, fl - 0.7));
+  }
+  if (charkoni) charkoni.rotation.y = now * 0.00018;
   updateCamera();
   composer.render();
   requestAnimationFrame(tick);
