@@ -145,6 +145,31 @@ mahabharata). Add a world = a new `worlds/<id>.json` + register the id in `setup
   `aad#<RESOURCE_ID>#<token>` — NO "Bearer"; pitch as `%` never `0st`) → `assets/<world>/voice/<hash>.mp3`
   + `voice.json`. dharma/mahabharata = `en-IN-Arjun:DragonHDLatestNeural`, ancient-india = `en-IN-Neerja`.
 
+## Realistic carved GLB pawns (v1.4)
+- The six pawn sculpts are now **real carved-ivory GLB figurines** (was procedural Three.js). Built
+  with the **`realistic-3d-objects`** skill (`~/.copilot/skills/realistic-3d-objects`): a matched
+  museum set — temple **stupa**, mace-bearing **warrior**, **lotus** bloom, sacred **kalash**,
+  caparisoned **elephant** (Gaja), Ashoka **pillar** (four-lion capital). Manifest:
+  `tooling/pawns.manifest.json`.
+- **Pipeline** (reuses Chaturanga's `.venv3d` CPU env + Blender 5.1; AAD `az login`): `gen_refs.py`
+  (gpt-image-2 concepts, ivory figurines on lotus pedestals) → `ivory_bg.py` (rembg → `.proj.jpg`) →
+  **`hf_batch.py`** (free tencent/Hunyuan3D-2 HF Space, GPU, ~11s/piece, dense crisp mesh — *far*
+  better than TripoSR) → **Blender `texture_project.py`** (orient + two-sided concept projection →
+  `web/assets/models/<key>.glb`, ~640KB each, 28k faces w/ JPEG texture).
+- **Orientation gotcha (hard-won):** the skill's default `ROTX=0 CAM=+Y` for Hunyuan assumes its
+  Chaturanga framing; our **tall 1024×1536 portrait** concepts came out of Hunyuan **inverted/tilted**
+  → use **`ROTX=180 CAM=+Y`**. Verify with the texture_project DBG (`up=[~0,~0,1]`, small `body lean`)
+  and **trimesh bounds** (tall along **Y**, base at y=0) — the Blender QA renders (`inspect_glb.py`
+  vs `axis_views.py`) use opposite camera-up conventions and disagree, so trust trimesh / the actual
+  Three.js render, not those.
+- **Wiring** (`board3d.js`): vendored `GLTFLoader.js` + `BufferGeometryUtils.js` + `SkeletonUtils.js`
+  (import map maps `three`). `loadPawnModels()` preloads the 6 GLBs once, `normalizePawn` scales to
+  `PAWN_TARGET_H` + rests base at y=0. `makePawnGLB(color,style)` clones the template, **tints**
+  `material.color` toward the seat hue (lightened 18% so the carved relief reads) + emissive = full
+  hue for a bloom glow, and sets `userData.mat/baseEmissive/baseScale` so the existing select-pulse
+  works. **Procedural `makePawn` stays as the fallback** if a GLB is missing. `chariot`→`warrior`
+  GLB alias. QA: `node tooling/qa_glb.mjs` (per-world GLB-usage diag + console errors).
+
 ## Narration, pawns, distant world (v1.3)
 - **Voice** (`web/js/narrate.js`, shared by both renderers): plays the pre-generated **DragonHD**
   clip for a teaching (word-highlight synced to the clip), and only falls back to the (robotic)

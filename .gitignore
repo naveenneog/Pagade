@@ -11,3 +11,7 @@ tooling/__pycache__/
 android/
 .gradle/
 *.apk
+
+tooling/_raw/
+tooling/_refs/
+tooling/_test/

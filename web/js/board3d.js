@@ -2,6 +2,7 @@
 // drawn as a real 3D cruciform with glowing beehive pawns, a bloom-lit Charkoni, an orbit camera,
 // and the shared DOM HUD / Teaching Reveal. Themed per world.
 import * as THREE from '../vendor/three.module.js';
+import { GLTFLoader } from '../vendor/GLTFLoader.js';
 import { EffectComposer } from '../vendor/EffectComposer.js';
 import { RenderPass } from '../vendor/RenderPass.js';
 import { UnrealBloomPass } from '../vendor/UnrealBloomPass.js';
@@ -380,6 +381,66 @@ const _diskGeo = new THREE.CylinderGeometry(0.19, 0.19, 0.05, 18);
 const _torusGeo = new THREE.TorusGeometry(0.14, 0.03, 8, 20);
 const _petalGeo = (() => { const g = new THREE.ConeGeometry(0.1, 0.34, 4); g.scale(1, 1, 0.5); return g; })();
 
+// ---------- realistic carved GLB pawns (realistic-3d-objects skill) ----------
+// Hand-carved ivory figurines authored via gpt-image-2 -> TripoSR -> Blender concept-projection.
+// Loaded once (world-independent), then cloned + tinted toward each player's seat colour: the baked
+// ivory map keeps the carved relief while we multiply it toward the hue and add a soft emissive so
+// the bloom pass makes the piece glow. Procedural makePawn() stays as the fallback if a GLB is
+// missing, so the board never breaks.
+const PAWN_MODELS = {};                 // key -> normalised THREE.Group template (base at y=0)
+const PAWN_KEYS = ['stupa', 'warrior', 'lotus', 'kalash', 'elephant', 'pillar'];
+const PAWN_TARGET_H = 1.08;             // normalised pawn height (a touch taller than the procedural piece)
+const glbKey = (style) => (style === 'chariot' ? 'warrior' : style); // themed mahabharata -> warrior
+let pawnModelsLoaded = null;
+function normalizePawn(obj, targetH) {
+  let box = new THREE.Box3().setFromObject(obj);
+  const size = new THREE.Vector3(); box.getSize(size);
+  obj.scale.setScalar(targetH / (size.y || 1));
+  obj.updateMatrixWorld(true);
+  box = new THREE.Box3().setFromObject(obj);
+  const c = new THREE.Vector3(); box.getCenter(c);
+  obj.position.set(-c.x, -box.min.y, -c.z);   // centre on XZ, rest base on y=0
+}
+function loadPawnModels() {
+  if (pawnModelsLoaded) return pawnModelsLoaded;
+  const loader = new GLTFLoader();
+  const one = (k) => new Promise((resolve) => {
+    loader.load(`assets/models/${k}.glb`,
+      (gltf) => { try { normalizePawn(gltf.scene, PAWN_TARGET_H); const t = new THREE.Group(); t.add(gltf.scene); PAWN_MODELS[k] = t; } catch { /* ignore */ } resolve(); },
+      undefined,
+      () => resolve());   // missing GLB -> procedural fallback
+  });
+  pawnModelsLoaded = Promise.all(PAWN_KEYS.map(one));
+  return pawnModelsLoaded;
+}
+function makePawnGLB(color, style) {
+  const tmpl = PAWN_MODELS[glbKey(style)];
+  if (!tmpl) return null;
+  const c = hexColor(color);
+  const g = tmpl.clone(true);
+  let mainMat = null;
+  g.traverse((n) => {
+    if (!n.isMesh) return;
+    n.castShadow = true;
+    const m = n.material.clone();
+    // tint the baked ivory carving toward the seat hue but keep it slightly lightened so the
+    // carved relief (brown recesses on cream) still reads; emissive uses the full saturated hue
+    // so the bloom pass gives each carved piece a glorious coloured glow.
+    m.color = c.clone().lerp(new THREE.Color(0xffffff), 0.18);
+    m.emissive = c.clone();
+    m.emissiveIntensity = 0.3;      // soft base glow (pulsed brighter on select)
+    m.roughness = 0.5; m.metalness = 0.12;
+    m.needsUpdate = true;
+    n.material = m;
+    if (!mainMat) mainMat = m;
+  });
+  g.userData.mat = mainMat;
+  g.userData.baseEmissive = 0.3;
+  g.userData.baseScale = 1;
+  g.scale.setScalar(1);
+  return g;
+}
+
 function makePawn(color, style, accent) {
   style = STYLE_ALIAS[style] || style;
   const c = hexColor(color);
@@ -438,7 +499,7 @@ function buildPawns() {
   for (const pl of state.players) {
     const style = pawnStyleFor(world, pl);
     for (let pi = 0; pi < pl.pieces.length; pi++) {
-      const g = makePawn(pl.color, style, accent);
+      const g = makePawnGLB(pl.color, style) || makePawn(pl.color, style, accent);
       g.userData.player = pl.idx; g.userData.piece = pi; g.userData.seat = pl.seat;
       scene.add(g);
       pieceGroups[`${pl.idx}-${pi}`] = g;
@@ -792,6 +853,7 @@ async function loadWorld(id) {
   applyTheme(world.theme);
   worldTitle.textContent = world.title; worldSubtitle.textContent = world.subtitle || '';
   document.title = `${world.title} — Pagade (3D)`;
+  try { await loadPawnModels(); } catch { /* procedural fallback */ }
   buildBoard(); buildPawns(); renderCowries(null); renderRoster();
   resetTransient(); announceTurn(false);
   updateCamera();
@@ -870,4 +932,4 @@ updateCamera();
 requestAnimationFrame(tick);
 loadWorld(worldSelect.value).catch((e) => (statusEl.textContent = String(e.message || e)));
 
-window.__pagade = { get state() { return state; }, get world() { return world; }, get awaitingPick() { return awaitingPick; }, get pendingMoves() { return pendingMoves; }, get busy() { return busy; }, geo, throw: onThrow, pick, loadWorld, mode: '3d' };
+window.__pagade = { get state() { return state; }, get world() { return world; }, get awaitingPick() { return awaitingPick; }, get pendingMoves() { return pendingMoves; }, get busy() { return busy; }, geo, throw: onThrow, pick, loadWorld, mode: '3d', get scene() { return scene; }, get pieceGroups() { return pieceGroups; }, get pawnModels() { return Object.keys(PAWN_MODELS); } };
