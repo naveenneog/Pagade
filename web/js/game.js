@@ -3,9 +3,11 @@ import {
   buildGeometry, cellAt, cellRC, isCastle, HOME, GRID,
   throwCowries, createGame, legalMoves, evaluateMove, applyMove, nextTurn, validateWorld,
 } from './pachisi.js';
-import { gameForWorld, charOf } from './config.js';
+import { gameForWorld, charOf, pawnStyleFor } from './config.js';
 import * as audio from './audio.js';
 import { playIntro } from './intro.js';
+import { pawnSVG } from './pawnsvg.js';
+import { setVoice, narrate, stopSpeak } from './narrate.js';
 
 const $ = (s) => document.querySelector(s);
 const boardEl = $('#board');
@@ -139,13 +141,13 @@ function buildYards() {
 function buildPieces() {
   pieceEls = {};
   for (const pl of state.players) {
-    const ch = charOf(world, pl.char);
+    const shape = pawnStyleFor(world, pl);
     for (let pi = 0; pi < pl.pieces.length; pi++) {
       const el = document.createElement('div');
       el.className = 'piece';
       el.style.setProperty('--pc', pl.color);
       el.tabIndex = -1;
-      el.innerHTML = `<span class="g">${(ch && ch.glyph) || '●'}</span>`;
+      el.innerHTML = pawnSVG(shape, pl.color);
       el.addEventListener('click', () => handlePieceClick(pl.idx, pi));
       boardEl.appendChild(el);
       pieceEls[`${pl.idx}-${pi}`] = el;
@@ -277,9 +279,16 @@ async function pick(move) {
   clearHighlights();
   if (el) el.classList.add('picked');
   busy = true;
-  await applyAndAnimate(move);
-  if (el) el.classList.remove('picked');
-  busy = false;
+  try {
+    await applyAndAnimate(move);
+  } catch (e) {
+    console.warn('pick recovered:', e);
+    try { placeAll(); renderRoster(); } catch (e2) { /* ignore */ }
+    if (state.winner == null) endThrow(false);
+  } finally {
+    if (el) el.classList.remove('picked');
+    busy = false;
+  }
 }
 
 async function glide(move) {
@@ -353,9 +362,11 @@ function showReveal(teaching) {
     requestAnimationFrame(() => reveal.classList.add('show'));
 
     let closed = false;
+    let autoTimer = null;
     const finish = () => {
       if (closed) return;
       closed = true;
+      if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
       stopSpeak(words);
       reveal.classList.remove('show');
       continueBtn.removeEventListener('click', finish);
@@ -366,49 +377,8 @@ function showReveal(teaching) {
     currentFinish = finish;
     continueBtn.addEventListener('click', finish);
     skipBtn.addEventListener('click', finish);
-    narrate(teaching.text, words, () => { fallbackTimer = setTimeout(finish, 900); });
+    narrate(teaching.text, words, speakOn, () => { autoTimer = setTimeout(finish, 900); });
   });
-}
-
-function pickVoice(lang) {
-  const voices = window.speechSynthesis ? speechSynthesis.getVoices() : [];
-  if (!voices.length || !lang) return null;
-  return voices.find((v) => v.lang && v.lang.toLowerCase() === lang.toLowerCase())
-    || voices.find((v) => v.lang && v.lang.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase())) || null;
-}
-function clearWords(words) { words.forEach((w) => w.classList.remove('on')); }
-function timedHighlight(words, per, done) {
-  let i = 0;
-  const step = () => { clearWords(words); if (i < words.length) { words[i].classList.add('on'); i += 1; fallbackTimer = setTimeout(step, per); } else if (done) done(); };
-  step();
-}
-function stopSpeak(words) {
-  if (window.speechSynthesis) speechSynthesis.cancel();
-  if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
-  if (words) clearWords(words);
-}
-function narrate(text, words, onend) {
-  let ended = false;
-  const done = () => { if (!ended) { ended = true; clearWords(words); onend(); } };
-  if (!speakOn || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
-    timedHighlight(words, 260, done);
-    return;
-  }
-  const u = new SpeechSynthesisUtterance(text);
-  const lang = (world.voice && world.voice.web) || 'en-IN';
-  const v = pickVoice(lang);
-  if (v) u.voice = v;
-  u.lang = lang; u.rate = 0.96;
-  u.onboundary = (e) => {
-    if (e.name && e.name !== 'word') return;
-    clearWords(words);
-    let acc = 0;
-    for (let k = 0; k < words.length; k++) { const wl = words[k].textContent.length + 1; if (e.charIndex < acc + wl) { words[k].classList.add('on'); break; } acc += wl; }
-  };
-  u.onend = done; u.onerror = done;
-  fallbackTimer = setTimeout(done, Math.max(4000, text.length * 90));
-  speechSynthesis.cancel();
-  speechSynthesis.speak(u);
 }
 
 // --- end of throw / turn ---
@@ -454,6 +424,7 @@ async function loadWorld(id) {
   seatColor = {};
   cfg.players.forEach((p) => { seatColor[p.seat] = p.color; });
   state = createGame(world, cfg.players, geo);
+  try { const vr = await fetch(`assets/${world.id}/voice/voice.json`); setVoice(vr.ok ? await vr.json() : {}, `assets/${world.id}`, (world.voice && world.voice.web) || 'en-IN'); } catch { setVoice({}, `assets/${world.id}`, 'en-IN'); }
 
   applyTheme(world.theme);
   worldTitle.textContent = world.title;

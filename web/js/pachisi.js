@@ -138,6 +138,7 @@ export function createGame(world, players, geo = buildGeometry()) {
       name: pl.name || `Player ${i + 1}`,
       color: pl.color,
       char: pl.char,
+      pawn: pl.pawn || 'themed',
       pieces: Array.from({ length: PIECES_PER_PLAYER }, () => 0), // all in the Charkoni yard
     })),
     turn: 0,

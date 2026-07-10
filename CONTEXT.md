@@ -141,6 +141,24 @@ mahabharata). Add a world = a new `worlds/<id>.json` + register the id in `setup
   `tooling/gen_intro.py` → Sora-2 **text-to-video** (`/openai/v1/videos?api-version=preview`,
   `Bearer` token, ~1–2 min each, sequential) → `assets/<world>/intro.mp4`. `tooling/gen_music.py`
   → numpy additive-synth raga loops + ffmpeg mp3 (seamless-loop tail-wrap) → `assets/<world>/music.mp3`.
+  `tooling/gen_voice.py` → **DragonHD Indian narration** for every teaching (Azure Speech REST,
+  `aad#<RESOURCE_ID>#<token>` — NO "Bearer"; pitch as `%` never `0st`) → `assets/<world>/voice/<hash>.mp3`
+  + `voice.json`. dharma/mahabharata = `en-IN-Arjun:DragonHDLatestNeural`, ancient-india = `en-IN-Neerja`.
+
+## Narration, pawns, distant world (v1.3)
+- **Voice** (`web/js/narrate.js`, shared by both renderers): plays the pre-generated **DragonHD**
+  clip for a teaching (word-highlight synced to the clip), and only falls back to the (robotic)
+  browser voice, then a silent timed highlight, if a clip is missing/blocked. `setVoice(map, base,
+  lang)` is called per world from the fetched `voice.json`.
+- **Creative pawns** (`web/js/pawnsvg.js` + `config.js PAWN_SHAPES`/`pawnStyleFor`): players pick a
+  pawn per player in the lobby — stupa / warrior / lotus / kalash / elephant / pillar, or "Themed"
+  (the world's own sculpt). 2D renders a shaded SVG token; 3D renders the matching sculpt
+  (`board3d.js makePawn`). `chariot`↔`warrior` are aliased.
+- **Per-world 3D scene** driven by `theme3d`: distinct tiles, `charkoni` (lotus/fire/chakra),
+  arm-tip props (diya lamps / torches / **authentic Ashoka Stambha** pillars — shaft + inverted-lotus
+  bell + abacus + four-lion capital + chakra), particles (motes/embers/dust), plus a **distant 3D
+  world** (`buildEnvironment`: gradient sky dome + starfield + a themed horizon skyline). A **3D
+  cowrie throw** tumbles six real shells onto the board.
 
 ---
 
@@ -193,6 +211,13 @@ WebGL** (`--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader`) a
    the `/openai/v1/videos` route. **Headless Chromium can't decode the H.264 intro** — `intro.js`
    backstops on stall/error and `?nointro=1` skips it (QA uses that).
 9. **`ॐ` (Om), not a swastika**, is the brand/Charkoni glyph. World-JSON emoji use `\uXXXX` escapes.
+10. **Every async turn step must reset `busy`.** A thrown error in `onThrow`/`pick` (or a dead render
+    loop) left `busy=true` forever → the 3D board "stopped, can't click". Both renderers now wrap the
+    flow in try/catch/finally, `board3d.js tick()` is wrapped in try/catch and **always** reschedules
+    `requestAnimationFrame`, `throwCowries3d` has a hard-timeout resolve, and 3D taps use a forgiving
+    raycast + screen-space nearest fallback. Regression-guarded by `tooling/qa_fix.mjs` (30-turn stress).
+11. **`narrate.js` guards `new Audio()`** (`typeof Audio !== 'undefined'` + try/catch) — jsdom has no
+    Audio, and an unguarded throw here previously hung the whole move flow (and the test suite).
 
 ---
 

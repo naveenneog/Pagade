@@ -27,5 +27,16 @@ for (const id of WORLDS) {
     const v = await readFile(mp4, { encoding: null });
     // MP4 files carry an 'ftyp' box near the start
     assert.ok(v.slice(4, 8).toString('latin1') === 'ftyp', `${id} intro.mp4 valid MP4 header`);
+
+    // DragonHD narration: a voice manifest + at least one non-trivial mp3 clip
+    const vj = asset(id, 'voice/voice.json');
+    if (existsSync(vj)) {
+      const map = JSON.parse(await readFile(vj, 'utf8'));
+      const files = [...new Set(Object.values(map))];
+      assert.ok(files.length >= 5, `${id} voice.json maps several teachings`);
+      const clip = asset(id, `voice/${files[0]}`);
+      assert.ok(existsSync(clip), `${id} first voice clip present`);
+      assert.ok((await stat(clip)).size > 1000, `${id} voice clip non-trivial`);
+    }
   });
 }

@@ -47,6 +47,13 @@
       .chip { cursor: pointer; font-size: 1.3rem; line-height: 1; width: 46px; height: 46px; display: grid; place-items: center; border-radius: 12px; border: 1.5px solid rgba(232, 182, 74, 0.28); background: rgba(0, 0, 0, 0.25); transition: all 0.12s; position: relative; }
       .chip .cn { position: absolute; bottom: -1.1rem; font-size: 0.58rem; color: #b79b74; white-space: nowrap; }
       .chip.sel { border-color: var(--pc, var(--gold)); box-shadow: 0 0 0 2px var(--pc, var(--gold)) inset; transform: translateY(-1px); }
+      .pawns { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; width: 100%; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed rgba(232, 182, 74, 0.18); }
+      .plabel { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: #b79b74; margin-right: 0.2rem; }
+      .pchip { cursor: pointer; width: 38px; height: 42px; padding: 3px; display: grid; place-items: center; border-radius: 10px; border: 1.5px solid rgba(232, 182, 74, 0.22); background: rgba(0, 0, 0, 0.25); transition: all 0.12s; }
+      .pchip .psvg { width: 26px; height: 34px; display: block; }
+      .pchip .psvg svg { width: 100%; height: 100%; }
+      .pchip .pth { font-size: 1.2rem; }
+      .pchip.sel { border-color: var(--pc, var(--gold)); box-shadow: 0 0 0 2px var(--pc, var(--gold)) inset; transform: translateY(-1px); }
       .actions { text-align: center; margin-top: 2.4rem; }
       #begin { font: inherit; font-size: 1.25rem; font-weight: bold; letter-spacing: 0.04em; color: #241200; background: linear-gradient(180deg, #ffcf7a, #e8a33d); border: 0; border-radius: 16px; padding: 1rem 2.6rem; cursor: pointer; box-shadow: 0 10px 30px rgba(232, 163, 61, 0.45); }
       #begin:active { transform: translateY(1px); }

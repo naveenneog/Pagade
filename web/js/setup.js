@@ -1,5 +1,6 @@
-// Lobby: pick a world/theme, 2-4 players and a character (archetype) for each, then begin.
-import { PLAYER_COLORS, SEATING, saveConfig, loadConfig } from './config.js';
+// Lobby: pick a world/theme, 2-4 players, a character + a pawn for each, then begin.
+import { PLAYER_COLORS, SEATING, PAWN_SHAPES, saveConfig, loadConfig } from './config.js';
+import { pawnSVG } from './pawnsvg.js';
 
 const WORLD_IDS = ['dharma', 'mahabharata', 'ancient-india'];
 const MODES = [['3d', '🎲 3D board'], ['2d', '🎯 2D board']];
@@ -13,7 +14,7 @@ function seatFor(i) { return (SEATING[state.count] || SEATING[4])[i]; }
 
 function defaultPlayer(i) {
   const roster = (worlds[state.world] && worlds[state.world].characters) || [];
-  return { name: `Player ${i + 1}`, char: roster.length ? roster[i % roster.length].id : null };
+  return { name: `Player ${i + 1}`, char: roster.length ? roster[i % roster.length].id : null, pawn: 'themed' };
 }
 
 function ensurePlayers() {
@@ -88,13 +89,26 @@ function renderPlayers() {
       chip.addEventListener('click', () => { p.char = c.id; renderPlayers(); });
       chars.appendChild(chip);
     }
-    row.append(dot, name, seatTag, chars);
+    if (!p.pawn) p.pawn = 'themed';
+    const pawns = el('div', 'pawns');
+    pawns.append(el('span', 'plabel', 'Pawn'));
+    for (const s of PAWN_SHAPES) {
+      const inner = s.id === 'themed' ? `<span class="pth">${s.emoji}</span>` : `<span class="psvg">${pawnSVG(s.id, color)}</span>`;
+      const chip = el('button', 'pchip' + (s.id === p.pawn ? ' sel' : ''), inner);
+      chip.setAttribute('aria-pressed', String(s.id === p.pawn));
+      chip.setAttribute('aria-label', `Pawn: ${s.name}`);
+      chip.title = s.name;
+      chip.style.setProperty('--pc', color);
+      chip.addEventListener('click', () => { p.pawn = s.id; renderPlayers(); });
+      pawns.appendChild(chip);
+    }
+    row.append(dot, name, seatTag, chars, pawns);
     box.appendChild(row);
   });
 }
 
 function begin() {
-  saveConfig({ world: state.world, mode: state.mode, players: state.players.map((p) => ({ name: p.name, char: p.char })) });
+  saveConfig({ world: state.world, mode: state.mode, players: state.players.map((p) => ({ name: p.name, char: p.char, pawn: p.pawn || 'themed' })) });
   const page = state.mode === '2d' ? 'play.html' : 'play3d.html';
   location.href = `${page}?world=${state.world}`;
 }
@@ -114,7 +128,7 @@ async function main() {
     state.count = Math.min(4, Math.max(2, prev.players.length));
     if (prev.world && worlds[prev.world] && !w) state.world = prev.world;
     if (prev.mode && !m) state.mode = prev.mode;
-    state.players = prev.players.slice(0, 4).map((p, i) => ({ name: p.name || `Player ${i + 1}`, char: p.char }));
+    state.players = prev.players.slice(0, 4).map((p, i) => ({ name: p.name || `Player ${i + 1}`, char: p.char, pawn: p.pawn || 'themed' }));
   }
   ensurePlayers();
 

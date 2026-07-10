@@ -8,6 +8,24 @@
 export const PLAYER_COLORS = ['#e5484d', '#46c76a', '#e8c24a', '#8b7bf0'];
 const KEY = 'pagade.game';
 
+// Creative pawn tokens a player can choose (2D SVG + a matching 3D sculpt). 'themed' follows the
+// world's own sculpt (theme3d.pawn); the rest are Indian-motif pieces that carry across worlds.
+export const PAWN_SHAPES = [
+  { id: 'themed', name: 'Themed', emoji: '\u2728' },
+  { id: 'stupa', name: 'Stupa', emoji: '\uD83D\uDD4C' },
+  { id: 'warrior', name: 'Warrior', emoji: '\u2694\uFE0F' },
+  { id: 'lotus', name: 'Lotus', emoji: '\uD83E\uDEB7' },
+  { id: 'kalash', name: 'Kalash', emoji: '\uD83C\uDFFA' },
+  { id: 'elephant', name: 'Elephant', emoji: '\uD83D\uDC18' },
+  { id: 'pillar', name: 'Pillar', emoji: '\uD83C\uDFDB\uFE0F' },
+];
+// Resolve a player's 3D/2D pawn sculpt id (falling back to the world's themed sculpt).
+export function pawnStyleFor(world, player) {
+  const p = player && player.pawn;
+  if (p && p !== 'themed') return p;
+  return (world && world.theme3d && world.theme3d.pawn) || 'stupa';
+}
+
 // Two players face each other across the board; more fill in counter-clockwise.
 export const SEATING = {
   2: [0, 2], // South, North
@@ -43,6 +61,7 @@ export function gameForWorld(world) {
     seat: seats[i],
     color: (p && p.color) || PLAYER_COLORS[seats[i]],
     char: (sameWorld && p && p.char && roster.some((c) => c.id === p.char)) ? p.char : pick(i),
+    pawn: (p && p.pawn) || 'themed',
   }));
   return { world: world.id, players };
 }
