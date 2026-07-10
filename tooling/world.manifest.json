@@ -1,0 +1,17 @@
+{
+  "material": "richly detailed and realistic with natural weathered colour, cinematic museum-diorama quality, a majestic ancient Indian monument as an architectural scale model",
+  "size": "1024x1536",
+  "style_extra": "Authentic Indian heritage architecture and mythology, sun-warmed aged stone with moss and gold leaf accents, intricate hand-carved relief, awe-inspiring and reverent.",
+  "items": {
+    "great_stupa": "A majestic Sanchi-style Great Stupa: a large hemispherical dome (anda) on a circular drum with a stone railing and a three-tiered parasol (chattra) on top, one ornately carved torana gateway in front, weathered honey sandstone.",
+    "bodhi_tree": "A sacred Bodhi fig tree (Ficus religiosa) with a broad lush green heart-leaf canopy and a pale mottled trunk, growing from a low square carved-stone worship platform (bodhighara) wrapped with prayer flags.",
+    "buddha_statue": "A serene seated meditating Buddha in dhyana mudra on a lotus throne, carved grey-gold stone with a calm downcast face, ushnisha crown and a halo, Gupta-era style.",
+    "war_chariot": "An ornate ancient Indian war chariot (ratha) with tall many-spoked wheels, a curved railed cab, a fluttering banner on a pole and a yoke for horses, bronze and gold with red trim, Kurukshetra epic.",
+    "chhatri_pavilion": "An elegant domed Rajput chhatri pavilion: a fluted onion dome on slender carved pillars over a raised platform, pink-and-cream sandstone with jharokha detail.",
+    "palace_gate": "A grand fortified palace gateway (darwaza) with a pointed arch, twin bastion towers, brass-studded doors and carved balconies, red sandstone Mughal-Rajput style.",
+    "gopuram": "A towering South Indian temple gopuram: a tall tapering rectangular tower stacked with tiers of brightly painted carved deities and a barrel-vaulted crown (shikhara) with gold kalasha finials, Dravidian style.",
+    "shikhara_temple": "A North Indian Nagara stone temple with a tall curvilinear beehive shikhara tower over a pillared mandapa, densely carved sandstone with an amalaka and kalasha on top, Khajuraho style.",
+    "lion_capital": "The Lion Capital of Ashoka standing alone: four addorsed sculpted lions seated back to back on a circular abacus carved with an elephant, horse, bull and lion separated by chakra wheels, over an inverted lotus bell, polished sandstone.",
+    "himalaya_peak": "A single majestic snow-capped Himalayan mountain peak with sharp ridges, glaciers and pine-dusted lower slopes under a crisp blue sky, Kailasa, natural rock and snow."
+  }
+}

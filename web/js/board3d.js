@@ -214,10 +214,18 @@ function buildBoard() {
   // board slab + a wide ground plane for the environment
   const slab = new THREE.Mesh(new THREE.BoxGeometry(15.8, 0.4, 15.8), new THREE.MeshStandardMaterial({ color: boardBase.clone().multiplyScalar(0.6), roughness: 0.95 }));
   slab.position.y = -0.22; boardGroup.add(slab);
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(60, 48), new THREE.MeshStandardMaterial({ color: hexColor(art.ground || world.theme.bg || '#0c0716'), roughness: 1, metalness: 0 }));
+  // wide ground plane with a soft radial glow pool around the board, fading to the night at the rim
+  const groundGeo = new THREE.CircleGeometry(60, 48);
+  const gTop = hexColor(art.ground || world.theme.bg || '#0c0716');
+  const gCenter = mix(gTop, glow, 0.18);
+  const gp = groundGeo.attributes.position, gcols = [];
+  for (let i = 0; i < gp.count; i++) { const d = Math.hypot(gp.getX(i), gp.getY(i)); const t = Math.min(1, d / 30); gcols.push(...mix(gCenter, gTop, t).toArray()); }
+  groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(gcols, 3));
+  const ground = new THREE.Mesh(groundGeo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }));
   ground.rotation.x = -Math.PI / 2; ground.position.y = -0.42; boardGroup.add(ground);
 
   buildEnvironment(art, glow);
+  buildMonuments();
   buildCharkoni(art.charkoni || 'lotus', accent, castleCol, glow);
   buildProps(art.props || 'lamps', glow);
   buildParticles(art.particles || 'motes', glow);
@@ -318,9 +326,9 @@ function buildEnvironment(art, glow) {
   const top = hexColor(art.ground || world.theme.bg || '#0c0716');
   // gradient sky dome
   const skyGeo = new THREE.SphereGeometry(240, 24, 16);
-  const horizon = mix(hexColor(glow), top, 0.72);
+  const horizon = mix(hexColor(glow), top, 0.5);
   const pos = skyGeo.attributes.position, cols = [];
-  for (let i = 0; i < pos.count; i++) { const y = pos.getY(i) / 240; const t = Math.max(0, Math.min(1, (y + 0.12) / 0.55)); const cc = mix(horizon, top, t); cols.push(cc.r, cc.g, cc.b); }
+  for (let i = 0; i < pos.count; i++) { const y = pos.getY(i) / 240; const t = Math.max(0, Math.min(1, (y + 0.06) / 0.62)); const cc = mix(horizon, top, t); cols.push(cc.r, cc.g, cc.b); }
   skyGeo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
   const sky = new THREE.Mesh(skyGeo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false }));
   boardGroup.add(sky);
@@ -331,18 +339,95 @@ function buildEnvironment(art, glow) {
   const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
   starfield = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xfff2d0, size: 0.9, sizeAttenuation: true, transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending }));
   boardGroup.add(starfield);
-  // distant themed skyline
-  const silMat = new THREE.MeshStandardMaterial({ color: mix(top, hexColor('#000000'), 0.25), emissive: hexColor(glow), emissiveIntensity: 0.14, roughness: 1, metalness: 0 });
-  const count = MOBILE ? 16 : 30;
+  // distant themed skyline — pushed far out as a faint horizon backdrop behind the realistic monuments
+  const silMat = new THREE.MeshStandardMaterial({ color: mix(top, hexColor('#000000'), 0.3), emissive: hexColor(glow), emissiveIntensity: 0.12, roughness: 1, metalness: 0 });
+  const count = MOBILE ? 12 : 22;
   for (let i = 0; i < count; i++) {
     const a = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.12;
-    const rr = 30 + Math.random() * 10;
+    const rr = 52 + Math.random() * 16;
     const s = buildSilhouette(art.props, silMat);
     s.position.set(Math.cos(a) * rr, -0.4, Math.sin(a) * rr);
     s.rotation.y = -a + Math.PI / 2;
-    s.scale.setScalar(2.4 + Math.random() * 2.8);
+    s.scale.setScalar(3.0 + Math.random() * 3.4);
     boardGroup.add(s);
   }
+}
+
+// ---------- realistic mythical monuments (realistic-3d-objects GLBs) ----------
+// Detailed carved-stone Indian monuments authored via the same pipeline as the pawns (gpt-image-2 ->
+// Hunyuan3D-2 -> Blender concept-projection). Loaded once, then placed per world in the diagonal
+// quadrants + far distance to ring the play area with a realistic mythical world. Textures kept as-is
+// (no tint). Procedural sky/skyline stays as a fallback backdrop, so a missing GLB never breaks a world.
+const MON_KEYS = ['great_stupa', 'bodhi_tree', 'buddha_statue', 'war_chariot', 'chhatri_pavilion', 'palace_gate', 'gopuram', 'shikhara_temple', 'lion_capital', 'himalaya_peak'];
+const MON_MODELS = {};
+const MON_GROUND_Y = -0.42;
+let monModelsLoaded = null;
+function loadMonuments() {
+  if (monModelsLoaded) return monModelsLoaded;
+  const loader = new GLTFLoader();
+  const one = (k) => new Promise((resolve) => {
+    loader.load(`assets/monuments/${k}.glb`,
+      (g) => { try { const t = new THREE.Group(); t.add(g.scene); MON_MODELS[k] = t; } catch { /* ignore */ } resolve(); },
+      undefined, () => resolve());
+  });
+  monModelsLoaded = Promise.all(MON_KEYS.map(one));
+  return monModelsLoaded;
+}
+function normalizeToHeight(obj, h) {
+  let box = new THREE.Box3().setFromObject(obj);
+  const s = new THREE.Vector3(); box.getSize(s);
+  obj.scale.setScalar(h / (s.y || 1));
+  obj.updateMatrixWorld(true);
+  box = new THREE.Box3().setFromObject(obj);
+  const c = new THREE.Vector3(); box.getCenter(c);
+  obj.position.set(-c.x, -box.min.y, -c.z);   // centre on XZ, base on y=0 (of the wrapper)
+}
+// [key, x, z, height] — a mythical monument skyline arced across the NORTH (behind the board from the
+// default south camera), radius ~26-56. North-biased on purpose: side monuments near the camera flanks
+// get viewed from below and loom, whereas a northern arc reads as a horizon of temples. Self-lit so
+// they glow softly out of the night; the farthest fade into fog for depth.
+// [key, x, z, height] — a near "courtyard" of shrines rings the board just beyond the arm tips
+// (radius ~13-16), north-and-sides biased and kept shorter than the camera so each reads clearly from
+// above (not looming from below or clipping at the horizon). The faint procedural skyline sits far
+// behind them for depth. Self-lit so they glow softly out of the night.
+const WORLD_MONUMENTS = {
+  dharma: [
+    ['great_stupa', -5, -13, 6.5], ['bodhi_tree', -14, -8, 6], ['buddha_statue', 13, -8, 6],
+    ['buddha_statue', 16, -2, 6], ['great_stupa', -16, -3, 6.5], ['himalaya_peak', 6, -14, 6],
+  ],
+  mahabharata: [
+    ['palace_gate', -5, -13, 6.5], ['chhatri_pavilion', -14, -8, 5.5], ['war_chariot', 13, -8, 5],
+    ['chhatri_pavilion', 16, -2, 6], ['palace_gate', -16, -3, 6.5], ['himalaya_peak', 6, -14, 6],
+  ],
+  'ancient-india': [
+    ['gopuram', -5, -13, 7], ['shikhara_temple', -14, -8, 6], ['lion_capital', 13, -8, 4.5],
+    ['shikhara_temple', 16, -2, 6], ['gopuram', -16, -3, 7], ['himalaya_peak', 6, -14, 6],
+  ],
+};
+function buildMonuments() {
+  const list = WORLD_MONUMENTS[world.id] || [];
+  const max = MOBILE ? 4 : list.length;
+  list.slice(0, max).forEach(([key, x, z, h]) => {
+    const tmpl = MON_MODELS[key];
+    if (!tmpl) return;
+    const inner = tmpl.clone(true);
+    inner.traverse((n) => {
+      if (n.isMesh && n.material) {
+        const m = n.material.clone();
+        m.metalness = Math.min(m.metalness || 0, 0.08);
+        m.roughness = Math.max(m.roughness || 0.6, 0.6);
+        if (m.map) { m.emissiveMap = m.map; m.emissive = new THREE.Color(0xffffff); m.emissiveIntensity = 0.32; } // gently self-lit so distant monuments read against the dark night
+        n.material = m;
+      }
+    });
+    normalizeToHeight(inner, h);
+    const outer = new THREE.Group();
+    outer.add(inner);
+    outer.position.set(x, MON_GROUND_Y, z);
+    outer.rotation.y = Math.atan2(x, z);   // aim the monument's front toward the board centre
+    outer.userData.monKey = key;
+    boardGroup.add(outer);
+  });
 }
 
 function buildParticles(style, glow) {
@@ -501,6 +586,7 @@ function buildPawns() {
     for (let pi = 0; pi < pl.pieces.length; pi++) {
       const g = makePawnGLB(pl.color, style) || makePawn(pl.color, style, accent);
       g.userData.player = pl.idx; g.userData.piece = pi; g.userData.seat = pl.seat;
+      g.rotation.y = pl.seat * (Math.PI / 2);   // carved front (+Z) faces outward, toward each player
       scene.add(g);
       pieceGroups[`${pl.idx}-${pi}`] = g;
     }
@@ -624,7 +710,7 @@ async function glide(move) {
 }
 
 // ---------- camera orbit ----------
-const cam = { theta: 0.0, phi: 0.92, zoom: 1.0 };
+const cam = { theta: 0.0, phi: 1.0, zoom: 1.0 };
 let baseR = 20;
 function fitRadius() {
   const fovy = camera.fov * Math.PI / 180;
@@ -637,7 +723,7 @@ function updateCamera() {
   const R = baseR / cam.zoom;
   const sp = Math.sin(cam.phi), cp = Math.cos(cam.phi);
   camera.position.set(target.x + R * sp * Math.sin(cam.theta), target.y + R * cp, target.z + R * sp * Math.cos(cam.theta));
-  camera.lookAt(target);
+  camera.lookAt(target.x, target.y + 3.0, target.z);   // aim a little above the board so the horizon + monument skyline come into frame
 }
 
 // pointer: drag to orbit, wheel/pinch to zoom, tap to pick
@@ -853,7 +939,7 @@ async function loadWorld(id) {
   applyTheme(world.theme);
   worldTitle.textContent = world.title; worldSubtitle.textContent = world.subtitle || '';
   document.title = `${world.title} — Pagade (3D)`;
-  try { await loadPawnModels(); } catch { /* procedural fallback */ }
+  try { await Promise.all([loadPawnModels(), loadMonuments()]); } catch { /* procedural fallback */ }
   buildBoard(); buildPawns(); renderCowries(null); renderRoster();
   resetTransient(); announceTurn(false);
   updateCamera();

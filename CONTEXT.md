@@ -145,6 +145,33 @@ mahabharata). Add a world = a new `worlds/<id>.json` + register the id in `setup
   `aad#<RESOURCE_ID>#<token>` — NO "Bearer"; pitch as `%` never `0st`) → `assets/<world>/voice/<hash>.mp3`
   + `voice.json`. dharma/mahabharata = `en-IN-Arjun:DragonHDLatestNeural`, ancient-india = `en-IN-Neerja`.
 
+## Mythical 3D worlds + pawn orientation fix (v1.5)
+- **Realistic monument worlds:** each 3D world is now ringed by detailed carved-stone Indian
+  **monuments** (same skill/pipeline as the pawns): `web/assets/monuments/*.glb` — great_stupa,
+  bodhi_tree, buddha_statue, war_chariot, chhatri_pavilion, palace_gate, gopuram, shikhara_temple,
+  lion_capital, himalaya_peak. Manifest: `tooling/world.manifest.json` (material = realistic stone,
+  **not** ivory). `board3d.js`: `loadMonuments()` preloads them once; `WORLD_MONUMENTS[world.id]`
+  lists `[key, x, z, height]`; `buildMonuments()` clones + normalises each to height, rests it on the
+  ground ring, aims it at the board centre, and makes it **self-lit** (`emissiveMap = map`,
+  intensity 0.32) so it glows out of the night. Procedural sky/skyline stays as the far backdrop.
+- **Composition (hard-won):** the board camera looks down ~30°, so anything taller than the camera
+  (~y10) or near the horizon gets **clipped at the top edge / seen from below**. The fix was NOT
+  distance — it was tilting the **camera aim up**: `updateCamera()` does
+  `camera.lookAt(target.x, target.y + 3.0, target.z)` so the horizon + monuments come into frame
+  while the board stays readable (it drops to the lower-centre). Monuments are then a **near
+  courtyard** (radius ~13-16, height ≤7, north-and-sides) — close enough to read from above, short
+  enough not to loom. Don't "simplify" the lookAt lift back to `lookAt(target)`.
+- **Pawn orientation fix:** the v1.4 pawns shipped **upside-down** (pedestal up) — the Blender QA
+  tools (`inspect_glb.py` vs `axis_views.py`) use opposite camera-up conventions and BOTH misled the
+  earlier `ROTX=180`. Ground truth is the **isolated Three.js viewer with an AxesHelper**
+  (`web/_viewer.html?d=models&m=<key>` / `?d=monuments`, gitignored) + trimesh bounds. Fixed by
+  flipping the 6 pawn GLBs 180deg about X on disk (`tooling/flip_glb.py`, texture-preserving) and
+  re-resting the base at y=0. **Monuments used `ROTX=0` and came out upright first try** — so `ROTX=0`
+  (not 180) is correct for these tall portrait concepts; the pawns just needed the after-the-fact flip.
+- **Pawn facing:** `buildPawns()` sets `g.rotation.y = seat * (PI/2)` so each carved pawn's front
+  (+Z, verified in the viewer) faces **outward toward its own player** (seat 0 = South = +Z = the
+  default camera, so the active player sees its pawns' faces).
+
 ## Realistic carved GLB pawns (v1.4)
 - The six pawn sculpts are now **real carved-ivory GLB figurines** (was procedural Three.js). Built
   with the **`realistic-3d-objects`** skill (`~/.copilot/skills/realistic-3d-objects`): a matched
