@@ -103,6 +103,7 @@ body {
 
 /* ---- reveal + win ---- */
 .reveal { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(8, 5, 3, 0.66); backdrop-filter: blur(3px); z-index: 40; opacity: 0; transition: opacity 0.24s; padding: 1rem; }
+.reveal[hidden], .intro[hidden] { display: none !important; }
 .reveal.show { opacity: 1; }
 .reveal .card { max-width: 460px; width: 100%; background: linear-gradient(180deg, var(--panel), color-mix(in srgb, var(--panel) 70%, #000)); border: 1px solid rgba(232, 182, 74, 0.35); border-radius: 18px; padding: 1.6rem; text-align: center; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6); transform: translateY(8px) scale(0.98); transition: transform 0.24s; }
 .reveal.show .card { transform: none; }
@@ -131,3 +132,21 @@ body {
   .brand h1 { font-size: 1.2rem; }
   .piece { font-size: 2.4vw; }
 }
+
+/* ---- 3D mode ---- */
+body.mode3d { padding: 0; overflow: hidden; height: 100vh; }
+.stage3d { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; touch-action: none; z-index: 0; }
+.topbar.floating { position: fixed; top: 0; left: 0; right: 0; z-index: 12; margin: 0; padding: 0.5rem 0.8rem calc(0.5rem); background: linear-gradient(180deg, rgba(10, 6, 12, 0.72), transparent); backdrop-filter: blur(4px); max-width: none; }
+.hud.floating3d { position: fixed; top: auto; right: 0.8rem; bottom: 0.8rem; z-index: 12; width: min(320px, 92vw); background: linear-gradient(180deg, rgba(24, 14, 30, 0.82), rgba(16, 10, 22, 0.9)); backdrop-filter: blur(6px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+@media (max-width: 640px) {
+  .hud.floating3d { left: 0.6rem; right: 0.6rem; bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px)); width: auto; padding: 0.7rem; }
+  .hud.floating3d .roster { grid-template-columns: 1fr 1fr; }
+  .topbar.floating .controls { gap: 0.3rem; }
+  .topbar.floating .ctrl { padding: 0.3rem 0.5rem; font-size: 0.82rem; min-height: 36px; }
+}
+
+/* ---- intro film overlay (both modes) ---- */
+.intro { position: fixed; inset: 0; z-index: 60; background: #000; display: grid; place-items: center; opacity: 1; transition: opacity 0.5s; }
+.intro.fade { opacity: 0; }
+.intro-video { width: 100%; height: 100%; object-fit: cover; }
+.intro-skip { position: fixed; right: calc(1rem + env(safe-area-inset-right, 0px)); bottom: calc(1.2rem + env(safe-area-inset-bottom, 0px)); z-index: 61; font: inherit; font-weight: bold; color: #241200; background: linear-gradient(180deg, #ffcf7a, #e8a33d); border: 0; border-radius: 12px; padding: 0.7rem 1.4rem; cursor: pointer; box-shadow: 0 8px 22px rgba(0,0,0,0.5); }

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Pagade — 3D</title>
+    <link rel="icon" href="assets/brand/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#120a06" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <script type="importmap">
+      { "imports": { "three": "./vendor/three.module.js" } }
+    </script>
+  </head>
+  <body class="mode3d">
+    <canvas id="c3d" class="stage3d"></canvas>
+
+    <header class="topbar floating">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">ॐ</span>
+        <div>
+          <h1 id="worldTitle">Pagade</h1>
+          <p id="worldSubtitle" class="subtitle">the journey home</p>
+        </div>
+      </div>
+      <div class="controls">
+        <label class="ctrl">World
+          <select id="worldSelect">
+            <option value="dharma">From Fate to Dharma</option>
+            <option value="mahabharata">The Game of Kings</option>
+            <option value="ancient-india">Journey Through Ancient India</option>
+          </select>
+        </label>
+        <button id="soundBtn" class="ctrl toggle" aria-pressed="true" title="Sound">🎵 Sound</button>
+        <button id="voiceBtn" class="ctrl toggle" aria-pressed="true" title="Read teachings aloud">🔊 Read aloud</button>
+        <button id="newGameBtn" class="ctrl">↺ New game</button>
+        <a id="lnk2d" class="ctrl" href="play.html">🎯 2D</a>
+        <a id="lnkLobby" class="ctrl" href="setup.html">⚙ Lobby</a>
+      </div>
+    </header>
+
+    <aside class="hud floating3d">
+      <div id="roster" class="roster" aria-label="Players"></div>
+      <div class="throw-area">
+        <div id="cowries" class="cowries" aria-hidden="true"></div>
+        <div class="throw-readout">
+          <span id="throwValue" class="throw-value">—</span>
+          <span id="throwGrace" class="throw-grace" hidden>grace · throw again</span>
+        </div>
+        <button id="throwBtn" class="throw">Throw the cowries</button>
+      </div>
+      <p id="status" class="status" aria-live="polite">Press Throw to begin the journey.</p>
+      <p class="hint">Drag to orbit · scroll/pinch to zoom · tap a glowing piece</p>
+    </aside>
+
+    <!-- per-world intro film -->
+    <div id="intro" class="intro" hidden>
+      <video id="introVideo" class="intro-video" playsinline muted></video>
+      <button id="introSkip" class="intro-skip">Skip ▸</button>
+    </div>
+
+    <!-- Teaching Reveal -->
+    <div id="reveal" class="reveal" hidden>
+      <div class="card" role="dialog" aria-modal="true" aria-labelledby="revealTitle">
+        <span id="revealKind" class="kind">Teaching</span>
+        <h2 id="revealTitle" class="name">—</h2>
+        <p id="revealText" class="meaning" aria-live="assertive"></p>
+        <div class="card-actions">
+          <button id="skipBtn" class="ghost">Skip</button>
+          <button id="continueBtn" class="primary">Continue ▸</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Win -->
+    <div id="winOverlay" class="reveal" hidden>
+      <div class="card win">
+        <h2 id="winTitle">🏵 The journey is complete</h2>
+        <p id="winMeaning" class="meaning"></p>
+        <button id="winNewGame" class="primary">Play again</button>
+      </div>
+    </div>
+
+    <script type="module" src="js/board3d.js"></script>
+  </body>
+</html>

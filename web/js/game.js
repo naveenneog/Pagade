@@ -5,6 +5,7 @@ import {
 } from './pachisi.js';
 import { gameForWorld, charOf } from './config.js';
 import * as audio from './audio.js';
+import { playIntro } from './intro.js';
 
 const $ = (s) => document.querySelector(s);
 const boardEl = $('#board');
@@ -457,12 +458,15 @@ async function loadWorld(id) {
   applyTheme(world.theme);
   worldTitle.textContent = world.title;
   worldSubtitle.textContent = world.subtitle || '';
-  document.title = `${world.title} — Pachisi`;
+  document.title = `${world.title} — Pagade`;
   buildBoard();
   renderCowries(null);
   renderRoster();
   resetTransientUi();
   announceTurn(false);
+  audio.setMusic(`assets/${world.id}/music.mp3`);
+  if (new URLSearchParams(location.search).has('nointro')) { audio.resume(); audio.startBed(); }
+  else playIntro(world.id, { onDone: () => { audio.resume(); audio.startBed(); } });
 }
 
 function resetTransientUi() {
@@ -513,7 +517,7 @@ if (window.speechSynthesis) { speechSynthesis.onvoiceschanged = () => {}; speech
 // honour ?world= from the lobby / deep links
 const wparam = new URLSearchParams(location.search).get('world');
 if (wparam && [...worldSelect.options].some((o) => o.value === wparam)) worldSelect.value = wparam;
-function syncLobbyLink() { const l = $('#lnkLobby'); if (l) l.href = `setup.html?world=${worldSelect.value}`; }
+function syncLobbyLink() { const l = $('#lnkLobby'); if (l) l.href = `setup.html?world=${worldSelect.value}`; const d = $('#lnk3d'); if (d) d.href = `play3d.html?world=${worldSelect.value}`; }
 syncLobbyLink();
 
 // start the ambient bed on the first interaction (autoplay policies)
@@ -523,7 +527,7 @@ window.addEventListener('pointerdown', kick);
 loadWorld(worldSelect.value).catch((e) => (statusEl.textContent = String(e.message || e)));
 
 // Debug/test hook — lets the smoke test and manual QA drive the game deterministically.
-window.__pachisi = {
+window.__pagade = {
   get state() { return state; },
   get world() { return world; },
   get awaitingPick() { return awaitingPick; },

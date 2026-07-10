@@ -6,7 +6,7 @@
 // The four traditional Pachisi seat colours (red, green, yellow, black), brightened so every piece
 // reads clearly on the dark cloth board. Index = arm/seat order (South, East, North, West).
 export const PLAYER_COLORS = ['#e5484d', '#46c76a', '#e8c24a', '#8b7bf0'];
-const KEY = 'pachisi.game';
+const KEY = 'pagade.game';
 
 // Two players face each other across the board; more fill in counter-clockwise.
 export const SEATING = {

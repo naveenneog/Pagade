@@ -28,8 +28,8 @@ async function main() {
   await page.screenshot({ path: `${OUT}lobby.png` });
 
   // --- the game ---
-  await page.goto(`${BASE}/play.html?world=dharma`, { waitUntil: 'networkidle' });
-  await page.waitForFunction(() => window.__pachisi && window.__pachisi.state, null, { timeout: 5000 });
+  await page.goto(`${BASE}/play.html?world=dharma&nointro=1`, { waitUntil: 'networkidle' });
+  await page.waitForFunction(() => window.__pagade && window.__pagade.state, null, { timeout: 5000 });
   await page.screenshot({ path: `${OUT}board-initial.png` });
 
   // install a controllable cowrie rng, then play a deterministic sequence of turns
@@ -42,7 +42,7 @@ async function main() {
 
   // capture a Teaching Reveal card (throw a grace, enter a piece, hold the reveal open)
   await page.evaluate(async () => {
-    const P = window.__pachisi;
+    const P = window.__pagade;
     const waitFor = async (pred, t = 4000) => { const t0 = Date.now(); while (Date.now() - t0 < t) { if (pred()) return true; await new Promise((r) => setTimeout(r, 25)); } return false; };
     window.__setThrow('grace');
     await P.throw();
@@ -58,7 +58,7 @@ async function main() {
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const step = async () => page.evaluate(async () => {
-    const P = window.__pachisi;
+    const P = window.__pagade;
     const waitFor = async (pred, t = 5000) => { const t0 = Date.now(); while (Date.now() - t0 < t) { if (pred()) return true; await new Promise((r) => setTimeout(r, 25)); } return false; };
     // choose a throw: grace when the current player still has a yard piece, else a plain 3
     const cur = P.state.players[P.state.turn];
@@ -87,7 +87,7 @@ async function main() {
 
   // force a near-win to exercise the exact-finish rule + win overlay
   await page.evaluate(async () => {
-    const P = window.__pachisi;
+    const P = window.__pagade;
     const waitFor = async (pred, t = 4000) => { const t0 = Date.now(); while (Date.now() - t0 < t) { if (pred()) return true; await new Promise((r) => setTimeout(r, 25)); } return false; };
     P.state.turn = 0;
     P.state.players[0].pieces = [68, 68, 68, 66]; // three home, one two-from-home
@@ -104,8 +104,8 @@ async function main() {
   // a phone-sized view
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
   watch(phone, 'phone');
-  await phone.goto(`${BASE}/play.html?world=mahabharata`, { waitUntil: 'networkidle' });
-  await phone.waitForFunction(() => window.__pachisi && window.__pachisi.state, null, { timeout: 5000 });
+  await phone.goto(`${BASE}/play.html?world=mahabharata&nointro=1`, { waitUntil: 'networkidle' });
+  await phone.waitForFunction(() => window.__pagade && window.__pagade.state, null, { timeout: 5000 });
   await phone.screenshot({ path: `${OUT}board-phone.png` });
 
   await browser.close();

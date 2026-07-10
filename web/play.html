@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Pachisi — the journey home</title>
+    <title>Pagade — the journey home</title>
     <link rel="icon" href="assets/brand/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png" />
     <link rel="manifest" href="manifest.webmanifest" />
@@ -30,6 +30,7 @@
         <button id="soundBtn" class="ctrl toggle" aria-pressed="true" title="Sound">🎵 Sound</button>
         <button id="voiceBtn" class="ctrl toggle" aria-pressed="true" title="Read teachings aloud">🔊 Read aloud</button>
         <button id="newGameBtn" class="ctrl">↺ New game</button>
+        <a id="lnk3d" class="ctrl" href="play3d.html">🎲 3D</a>
         <a id="lnkLobby" class="ctrl" href="setup.html">⚙ Lobby</a>
       </div>
     </header>
@@ -60,6 +61,12 @@
         <p class="hint">Throw, then tap a glowing piece to move it · 6 / 10 / 25 = a grace</p>
       </aside>
     </main>
+
+    <!-- per-world intro film -->
+    <div id="intro" class="intro" hidden>
+      <video id="introVideo" class="intro-video" playsinline muted></video>
+      <button id="introSkip" class="intro-skip">Skip ▸</button>
+    </div>
 
     <!-- Teaching Reveal -->
     <div id="reveal" class="reveal" hidden>

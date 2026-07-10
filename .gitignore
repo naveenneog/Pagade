@@ -2,6 +2,8 @@ node_modules/
 .DS_Store
 *.log
 web/assets/generated/
+web/assets/**/*.prompt.txt
+web/assets/**/*.wav
 tooling/_shots/
 tooling/_qa/
 tooling/__pycache__/

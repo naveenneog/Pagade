@@ -1,6 +1,6 @@
 {
-  "appId": "com.naveenneog.pachisi",
-  "appName": "Pachisi",
+  "appId": "com.naveenneog.pagade",
+  "appName": "Pagade",
   "webDir": "web",
   "android": {
     "backgroundColor": "#120a06"

@@ -50,22 +50,22 @@ jobs:
         id: name
         run: |
           VER="${{ github.event.release.tag_name || github.event.inputs.version || 'dev' }}"
-          cp android/app/build/outputs/apk/debug/app-debug.apk "Pachisi-${VER}.apk"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "Pagade-${VER}.apk"
           # Stable-named copy for a permanent "latest" link:
-          # https://github.com/naveenneog/Pachisi/releases/latest/download/Pachisi.apk
-          cp android/app/build/outputs/apk/debug/app-debug.apk "Pachisi.apk"
-          echo "apk=Pachisi-${VER}.apk" >> "$GITHUB_OUTPUT"
+          # https://github.com/naveenneog/Pagade/releases/latest/download/Pagade.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk "Pagade.apk"
+          echo "apk=Pagade-${VER}.apk" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK as workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: pachisi-apk
-          path: Pachisi*.apk
+          name: pagade-apk
+          path: Pagade*.apk
 
       - name: Attach APK to the release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.release.tag_name || github.event.inputs.version }}
           files: |
-            Pachisi-*.apk
-            Pachisi.apk
+            Pagade-*.apk
+            Pagade.apk

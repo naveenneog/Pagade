@@ -2,8 +2,9 @@
 import { PLAYER_COLORS, SEATING, saveConfig, loadConfig } from './config.js';
 
 const WORLD_IDS = ['dharma', 'mahabharata', 'ancient-india'];
+const MODES = [['3d', '🎲 3D board'], ['2d', '🎯 2D board']];
 const worlds = {};
-const state = { world: 'dharma', count: 2, players: [] };
+const state = { world: 'dharma', count: 2, mode: '3d', players: [] };
 
 const $ = (s) => document.querySelector(s);
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
@@ -53,6 +54,16 @@ function renderCounts() {
   }
 }
 
+function renderModes() {
+  const box = $('#modes'); box.innerHTML = '';
+  for (const [id, label] of MODES) {
+    const b = el('button', 'pill' + (id === state.mode ? ' sel' : ''), label);
+    b.setAttribute('aria-pressed', String(id === state.mode));
+    b.addEventListener('click', () => { state.mode = id; renderModes(); });
+    box.appendChild(b);
+  }
+}
+
 function renderPlayers() {
   ensurePlayers();
   const roster = (worlds[state.world] && worlds[state.world].characters) || [];
@@ -83,8 +94,9 @@ function renderPlayers() {
 }
 
 function begin() {
-  saveConfig({ world: state.world, players: state.players.map((p) => ({ name: p.name, char: p.char })) });
-  location.href = `play.html?world=${state.world}`;
+  saveConfig({ world: state.world, mode: state.mode, players: state.players.map((p) => ({ name: p.name, char: p.char })) });
+  const page = state.mode === '2d' ? 'play.html' : 'play3d.html';
+  location.href = `${page}?world=${state.world}`;
 }
 
 async function main() {
@@ -94,17 +106,21 @@ async function main() {
   const params = new URLSearchParams(location.search);
   const w = params.get('world');
   if (w && worlds[w]) state.world = w;
+  const m = params.get('mode');
+  if (m && MODES.some(([id]) => id === m)) state.mode = m;
 
   const prev = loadConfig();
   if (prev && Array.isArray(prev.players) && prev.players.length) {
     state.count = Math.min(4, Math.max(2, prev.players.length));
     if (prev.world && worlds[prev.world] && !w) state.world = prev.world;
+    if (prev.mode && !m) state.mode = prev.mode;
     state.players = prev.players.slice(0, 4).map((p, i) => ({ name: p.name || `Player ${i + 1}`, char: p.char }));
   }
   ensurePlayers();
 
   renderThemes();
   renderCounts();
+  renderModes();
   renderPlayers();
   $('#begin').addEventListener('click', begin);
 }

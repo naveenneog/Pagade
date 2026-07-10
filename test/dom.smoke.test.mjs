@@ -33,8 +33,8 @@ test('game.js builds the board and drives an entry + advance', async () => {
 
   try {
     await import('../web/js/game.js');
-    const P = window.__pachisi;
-    assert.ok(await waitFor(() => window.__pachisi && window.__pachisi.state), 'game initialises');
+    const P = window.__pagade;
+    assert.ok(await waitFor(() => window.__pagade && window.__pagade.state), 'game initialises');
 
     // structure
     assert.ok(document.querySelectorAll('#board .cell').length >= 70, 'cruciform cells built');

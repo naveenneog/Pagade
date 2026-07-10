@@ -1,42 +1,51 @@
-# Pachisi — project context (read this to resume)
+# Pagade — project context (read this to resume)
 
 > **If you are an AI agent resuming work on this game, read this file first.** It is the durable
-> memory of what Pachisi is, how it is built, what is shipped, and where to pick up. Sister
+> memory of what Pagade is, how it is built, what is shipped, and where to pick up. Sister
 > projects: **Sopāna** (`../Sopana`) and **Chaturanga** (`../Chaturanga`), which pioneered the
 > data-driven "worlds over a pure engine" pattern this game follows.
 
 - **Owner:** @naveenneog (Naveen Gopalakrishna)
-- **What:** a digital reconstruction of **Pachisi** — the ancient Indian **cross-and-cowries**
-  journey game (Ludo's ancestor) — rebuilt with its original symbolism: *"From Fate to Dharma: The
-  Journey Home."* Every piece is a soul; the centre (Charkoni) is home; every milestone reads a
-  teaching aloud.
-- **Status:** **v1.0 (M0)** — a complete, authentic, tested 2D game: cruciform board, six-cowrie
-  throws, 2–4 hotseat players, capture / castles / blockades / exact-finish, a **Teaching Reveal**,
-  three themed worlds, a lobby and a launch page. Procedural audio. **Not yet published** (see
-  Publishing — ask before pushing to public Pages / cutting a release).
-- **Run:** `npm run serve` → http://localhost:5175 · **Test:** `npm test` (24 tests) · **QA:**
-  `node tooling/qa.mjs` (Playwright screenshots → `tooling/_qa/`).
+- **Naming:** the game is **Pagade** (the Karnataka name for **Pachisi**). The public repo is
+  **github.com/naveenneog/Pagade** (Pages: **naveenneog.github.io/Pagade**). The local dev folder is
+  historically `C:\Users\navg\DailyApps\Pachisi` and the pure engine file stays `web/js/pachisi.js`
+  (it implements the Pachisi/Pagade rules) — everything user-facing says **Pagade**.
+- **What:** a digital reconstruction of the ancient Indian **cross-and-cowries** journey game
+  (Ludo's ancestor) — rebuilt with its original symbolism: *"From Fate to Dharma: The Journey Home."*
+  Every piece is a soul; the centre (Charkoni) is home; every milestone reads a teaching aloud.
+- **Status:** **v1.1** — a complete, authentic, tested game in **2D and 3D**: cruciform board,
+  six-cowrie throws, 2–4 hotseat players, capture / castles / blockades / exact-finish, a **Teaching
+  Reveal**, three themed worlds, per-world **Sora-2 intro films** + composed **music beds**, a lobby
+  (with a 2D|3D mode toggle) and a launch page. **Published & live** at naveenneog.github.io/Pagade
+  (v1.0.0 released with an APK; cut v1.1.0 for the 3D+media build). **Ask before publishing further.**
+- **Run:** `npm run serve` → http://localhost:5175 · **Test:** `npm test` (27 tests) · **QA:**
+  `node tooling/qa.mjs` (2D) + `node tooling/qa3d.mjs` (3D, swiftshader) → `tooling/_qa/`.
 
 ---
 
-## Architecture (data over a pure engine)
+## Architecture (data over a pure engine, two renderers)
 Served from `web/`:
 ```
 index.html          LAUNCH / landing page (Play -> setup.html; installed app/PWA skip to setup.html)
-setup.html + js/setup.js     LOBBY: world, 2-4 players, a character each -> sessionStorage (pachisi.game)
-play.html + js/game.js       the 2D renderer + all interaction (the only mode today)
+setup.html + js/setup.js     LOBBY: world, 2-4 players, a character each, MODE (2D|3D) -> sessionStorage (pagade.game)
+play.html   + js/game.js     Renderer A — flat 2D cruciform board + all interaction
+play3d.html + js/board3d.js  Renderer B — Three.js 3D board: glowing beehive pawns, bloom, orbit camera
 js/pachisi.js       PURE rules + geometry (no DOM) — the heart; fully unit-tested
 js/config.js        hotseat config + SEATING (2 players seat opposite: South & North)
-js/audio.js         procedural Web Audio (cowrie rattle, move, capture, castle, home, win + drone)
+js/audio.js         Web Audio SFX + a per-world music-bed loop (setMusic); falls back to a drone
+js/intro.js         auto-dismissing per-world intro-film overlay (shared by both renderers)
+vendor/             three.module.js + three.core.js + the bloom chain (EffectComposer/RenderPass/UnrealBloomPass/OutputPass + shaders)
 worlds/<id>.json    the game data (theme, characters, teaching banks)
-css/styles.css      board + HUD + reveal styling (theme-driven CSS vars)
+css/styles.css      board + HUD + reveal + 3D-layout + intro-overlay styling (theme-driven CSS vars)
 manifest.webmanifest  PWA — start_url = setup.html (installed app opens the game, not the landing)
-assets/brand/       icon/favicon (NOT yet generated — see backlog)
+assets/brand/       icons/favicon (tooling/make_brand.py — the board as a logo)
+assets/<world>/     music.mp3 (tooling/gen_music.py) + intro.mp4 (tooling/gen_intro.py, Sora-2)
 ```
-Data flow: `worlds/<id>.json → validateWorld → createGame(state)`; `game.js` drives the state via
+Data flow: `worlds/<id>.json → validateWorld → createGame(state)`; each renderer drives the state via
 `throwCowries → legalMoves → (player picks) → applyMove → nextTurn`, animating each step and firing a
-**Teaching Reveal** on milestones. Debug hook: **`window.__pachisi`** = `{ state, world, geo,
-awaitingPick, pendingMoves, busy, throw, pick, loadWorld }` (used by QA + the DOM smoke test).
+**Teaching Reveal** on milestones. Both renderers reuse the engine + the DOM reveal/roster/cowrie HUD.
+Debug hook: **`window.__pagade`** = `{ state, world, geo, awaitingPick, pendingMoves, busy, throw,
+pick, loadWorld, mode }` (used by QA + the DOM smoke test). `?nointro=1` skips the intro film.
 
 ---
 
@@ -101,40 +110,57 @@ mahabharata). Add a world = a new `worlds/<id>.json` + register the id in `setup
 
 ---
 
-## Features shipped (v1.0 / M0)
+## Features shipped (v1.1)
 - Full authentic **cruciform + cowrie** game with capture, castles, blockades, grace/exact-finish.
+- **Two renderers** from one engine: a flat **2D** board (`game.js`) and a **3D** board (`board3d.js`,
+  Three.js) with glowing beehive **LatheGeometry pawns**, a bloom-lit Charkoni + castle stars, an
+  orbit/zoom/pinch camera (`fitRadius`), and per-world 3D environment (bg/fog/lights from `theme`).
 - **Local hotseat 2–4**, seated around the arms (2 = opposite); live roster with per-piece pips
-  (yard / active / home) and the current player highlighted; pieces **fan out** when sharing a cell.
+  (yard / active / home); pieces **fan out** when sharing a cell.
 - **Teaching Reveal** on enter/castle/capture/home/win/journey, **read aloud** with word highlight.
-- **Three themed worlds** + an in-game world switcher; **procedural audio** (cowrie rattle, move,
-  capture, castle bell, home arpeggio, win fanfare, tanpura drone) with a Sound + a Read-aloud toggle.
-- **Lobby** (world / count / character) + a **launch/landing page** (rules, cowrie table, worlds,
-  CTA); PWA manifest (installed app opens the lobby). Responsive (desktop + phone verified).
+- **Per-world Sora-2 intro films** (`intro.js` overlay, once per session, always skippable) and
+  composed **raga music beds** (`audio.setMusic`, falls back to a procedural drone). Sound + Read-
+  aloud toggles.
+- **Three themed worlds** + in-game world switcher; **lobby** (world / count / character / **mode**)
+  + a **launch page**; PWA manifest. Responsive (desktop + phone verified in both modes).
+
+## 3D renderer + media pipeline
+- `board3d.js`: `WebGLRenderer` (ACESFilmic, exposure 1.18) + an **EffectComposer bloom chain**
+  (`UnrealBloomPass` 0.7/0.7/0.82) so emissive pawns/Charkoni halo. 81 cross tiles as one
+  **InstancedMesh** (per-instance colour: track cloth, seat-tinted home lanes/gates, castle tiles);
+  12 emissive castle stars; a glowing Charkoni medallion + ring. Pawns are a beehive `LatheGeometry`
+  with a per-player emissive `MeshStandardMaterial`; movable pawns pulse emissive + scale. Orbit via
+  custom pointer/pinch/wheel; `fitRadius` keeps the whole cross in frame; tap = raycast pick.
+- **Media generators** (Azure, AAD via `az login`, endpoint `ai-contosohub530569751908`):
+  `tooling/gen_intro.py` → Sora-2 **text-to-video** (`/openai/v1/videos?api-version=preview`,
+  `Bearer` token, ~1–2 min each, sequential) → `assets/<world>/intro.mp4`. `tooling/gen_music.py`
+  → numpy additive-synth raga loops + ffmpeg mp3 (seamless-loop tail-wrap) → `assets/<world>/music.mp3`.
 
 ---
 
 ## Build / run / test / QA
 ```bash
 npm run serve                 # dev server -> http://localhost:5175 (scripts/serve.mjs)
-npm test                      # node:test: pachisi (engine+geometry, 19) + worlds (4) + dom.smoke (1) = 24
-node tooling/qa.mjs           # Playwright: watches console/page errors, screenshots landing/lobby/
-                              # board/reveal/win/phone, and DRIVES a deterministic game via window.__pachisi
+npm test                      # node:test: pachisi (engine+geometry 19) + worlds (4) + assets (3) + dom.smoke (1) = 27
+node tooling/qa.mjs           # Playwright (2D): console/page-error watch, screenshots, driven game
+node tooling/qa3d.mjs         # Playwright (3D, --use-angle=swiftshader): per-world 3D shots + driven game
 ```
 QA reuses the Chromium already downloaded for the sibling games (`~/AppData/Local/ms-playwright`).
 Local `npm install` for jsdom/playwright used `--registry https://registry.npmjs.org` (private
 registry 401s). The deterministic driver installs a controllable cowrie rng
-(`window.__setThrow('grace'|'three')` → forces 25 / 3) so QA is repeatable.
+(`window.__setThrow('grace'|'three')` → forces 25 / 3) so QA is repeatable. **3D QA needs software
+WebGL** (`--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader`) and is slow (minutes).
 
 ---
 
-## Publishing (NOT done yet — ask first)
-Mirrors the sibling games (see `../Sopana/CONTEXT.md`). Ready but **not run**:
-- **Web:** `.github/workflows/pages.yml` deploys `web/` to Pages (enable once via
-  `gh api --method POST repos/naveenneog/Pachisi/pages -f build_type=workflow`).
+## Publishing (DONE — ask before further releases)
+- **Web:** live at **https://naveenneog.github.io/Pagade/** (`.github/workflows/pages.yml` deploys
+  `web/` on push to `main`; enabled once via `gh api --method POST repos/naveenneog/Pagade/pages -f
+  build_type=workflow`).
 - **APK:** `.github/workflows/apk.yml` wraps `web/` with **Capacitor 7** → `assembleDebug`. **CI must
   use JDK 21** (Capacitor 7 compiles source release 21; JDK 17 → `invalid source release: 21`).
-  `capacitor.config.json` appId = `com.naveenneog.pachisi`. Publishes `Pachisi-vX.Y.Z.apk` + stable
-  `Pachisi.apk`.
+  `capacitor.config.json` appId = `com.naveenneog.pagade`. Publishes `Pagade-vX.Y.Z.apk` + stable
+  `Pagade.apk`. v1.0.0 released (2D); cut v1.1.0 for the 3D+media build.
 - **License:** PolyForm Noncommercial 1.0.0. **@naveenneog wants to be asked before publishing.**
 
 ---
@@ -145,15 +171,22 @@ Mirrors the sibling games (see `../Sopana/CONTEXT.md`). Ready but **not run**:
 2. **The middle column is traversed twice** (out early, in late) so a cell can appear at two path
    indices for the same player — positions are indices, not cells. Fine for capture (private cells
    are never shared with opponents except the tip castle).
-3. **CSS class collisions bite:** the legend chip was class `yard` and got hit by the board `.yard`
-   rule (`position:absolute; width:26%`) → a stray 40px dashed box. It's now `.chip.charkoni`. Watch
-   for shared class names between board elements and HUD elements.
-4. **Geometry is generated + asserted** — never hand-edit `paths`; change the generator and keep the
-   geometry tests green.
-5. **Audio safely no-ops without an AudioContext** (jsdom) — every audio fn guards on `ensure()`.
-6. **`ॐ` (Om), not a swastika**, is the brand/Charkoni glyph (chosen over the authentic-but-easily-
-   -misread svastika for a public web build).
-7. Emoji glyphs in world JSON use `\uXXXX` escapes to keep the files ASCII-safe.
+3. **`[hidden]` needs an explicit escape when the class sets `display`.** `.reveal`/`.intro` set
+   `display:grid`, which (author-origin) **overrides the UA `[hidden]{display:none}`** — so the
+   overlays never hid and the invisible reveal/win overlay **silently blocked every real board
+   click** (QA used the debug hook, so it hid for weeks). Fixed with `.reveal[hidden],.intro[hidden]
+   { display:none !important }`. **Always test a REAL click, not just the debug hook.**
+4. **Fixed panels: set `top:auto`.** `.hud.floating3d` inherited `top:0.5rem` from `.hud`; with its
+   own `bottom` that stretched it to full height and it covered the whole 3D board on mobile.
+5. **CSS class collisions bite:** the legend chip class `yard` got hit by the board `.yard` rule
+   (`position:absolute; width:26%`) → a stray 40px box. Renamed to `.chip.charkoni`.
+6. **Geometry is generated + asserted** — never hand-edit `paths`; change the generator, keep tests green.
+7. **Media play() guards:** `intro.js` video.play() and `audio.js` musicEl.play() are wrapped in
+   try/catch (jsdom throws "Not implemented"); audio also no-ops without an AudioContext.
+8. **Sora-2** = text-to-video only (image refs with people get moderation-blocked); `Bearer` token on
+   the `/openai/v1/videos` route. **Headless Chromium can't decode the H.264 intro** — `intro.js`
+   backstops on stall/error and `?nointro=1` skips it (QA uses that).
+9. **`ॐ` (Om), not a swastika**, is the brand/Charkoni glyph. World-JSON emoji use `\uXXXX` escapes.
 
 ---
 

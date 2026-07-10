@@ -7,6 +7,9 @@ let master = null;
 let bedGain = null;
 let bedNodes = [];
 let enabled = true;
+let musicEl = null;
+let musicUrl = null;
+let bedWanted = false;
 
 function ensure() {
   if (ctx) return ctx;
@@ -27,10 +30,40 @@ export function resume() {
 export function setEnabled(on) {
   enabled = on;
   if (master) master.gain.value = on ? 0.9 : 0;
-  if (!on) stopBed();
+  if (!on) { stopBed(); }
+  else if (bedWanted) { startBed(); }
 }
 
 export function isEnabled() { return enabled; }
+
+// Point the music bed at a per-world looping track (assets/<world>/music.mp3). Plays through a
+// plain <audio> element (independent of the SFX graph) so it works even without full Web Audio;
+// the Sound toggle mutes it. Falls back to the procedural drone when no url is given.
+export function setMusic(url) {
+  if (url === musicUrl) return;
+  musicUrl = url || null;
+  if (musicEl) { try { musicEl.pause(); } catch { /* ignore */ } musicEl = null; }
+  if (musicUrl) {
+    musicEl = new Audio(musicUrl);
+    musicEl.loop = true;
+    musicEl.preload = 'auto';
+    musicEl.volume = 0;
+  }
+  if (bedWanted) startBed();
+}
+
+function fadeMusic(to, ms = 1400) {
+  if (!musicEl) return;
+  const from = musicEl.volume;
+  const t0 = performance.now();
+  const step = (t) => {
+    const k = Math.min(1, (t - t0) / ms);
+    musicEl.volume = Math.max(0, Math.min(1, from + (to - from) * k));
+    if (k < 1) requestAnimationFrame(step);
+    else if (to === 0) { try { musicEl.pause(); } catch { /* ignore */ } }
+  };
+  requestAnimationFrame(step);
+}
 
 // A short tone with an envelope.
 function tone(freq, t0, dur, { type = 'sine', gain = 0.2, glideTo = null } = {}) {
@@ -104,9 +137,18 @@ export function sfx(name) {
   }
 }
 
-// A slow tanpura-like drone: a tonic + fifth with gentle amplitude shimmer.
+// Start the ambient bed: a per-world music loop when set, otherwise a procedural tanpura drone.
 export function startBed() {
+  bedWanted = true;
   if (!enabled) return;
+  if (musicUrl && musicEl) {
+    try {
+      const p = musicEl.play();
+      if (p && typeof p.catch === 'function') p.catch(() => { /* autoplay blocked; retry on gesture */ });
+      fadeMusic(0.62);
+    } catch { /* headless / no media support */ }
+    return;
+  }
   const c = ensure();
   if (!c || bedNodes.length) return;
   bedGain = c.createGain();
@@ -132,6 +174,8 @@ export function startBed() {
 }
 
 export function stopBed() {
+  bedWanted = false;
+  if (musicEl) fadeMusic(0, 500);
   if (!ctx || !bedNodes.length) return;
   const now = ctx.currentTime;
   if (bedGain) bedGain.gain.linearRampToValueAtTime(0, now + 0.6);
