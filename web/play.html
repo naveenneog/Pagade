@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Pachisi — the journey home</title>
+    <link rel="icon" href="assets/brand/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#120a06" />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">ॐ</span>
+        <div>
+          <h1 id="worldTitle">Pachisi</h1>
+          <p id="worldSubtitle" class="subtitle">the journey home</p>
+        </div>
+      </div>
+      <div class="controls">
+        <label class="ctrl">World
+          <select id="worldSelect">
+            <option value="dharma">From Fate to Dharma</option>
+            <option value="mahabharata">The Game of Kings</option>
+            <option value="ancient-india">Journey Through Ancient India</option>
+          </select>
+        </label>
+        <button id="soundBtn" class="ctrl toggle" aria-pressed="true" title="Sound">🎵 Sound</button>
+        <button id="voiceBtn" class="ctrl toggle" aria-pressed="true" title="Read teachings aloud">🔊 Read aloud</button>
+        <button id="newGameBtn" class="ctrl">↺ New game</button>
+        <a id="lnkLobby" class="ctrl" href="setup.html">⚙ Lobby</a>
+      </div>
+    </header>
+
+    <main class="stage">
+      <section class="board-wrap">
+        <div id="board" class="board" role="grid" aria-label="Pachisi board"></div>
+      </section>
+
+      <aside class="hud">
+        <div id="roster" class="roster" aria-label="Players"></div>
+
+        <div class="throw-area">
+          <div id="cowries" class="cowries" aria-hidden="true"></div>
+          <div class="throw-readout">
+            <span id="throwValue" class="throw-value">—</span>
+            <span id="throwGrace" class="throw-grace" hidden>grace · throw again</span>
+          </div>
+          <button id="throwBtn" class="throw">Throw the cowries</button>
+        </div>
+
+        <p id="status" class="status" aria-live="polite">Press Throw to begin the journey.</p>
+
+        <div class="legend">
+          <span><i class="chip castle"></i> castle — safe from capture</span>
+          <span><i class="chip charkoni"></i> Charkoni — start &amp; home</span>
+        </div>
+        <p class="hint">Throw, then tap a glowing piece to move it · 6 / 10 / 25 = a grace</p>
+      </aside>
+    </main>
+
+    <!-- Teaching Reveal -->
+    <div id="reveal" class="reveal" hidden>
+      <div class="card" role="dialog" aria-modal="true" aria-labelledby="revealTitle">
+        <span id="revealKind" class="kind">Teaching</span>
+        <h2 id="revealTitle" class="name">—</h2>
+        <p id="revealText" class="meaning" aria-live="assertive"></p>
+        <div class="card-actions">
+          <button id="skipBtn" class="ghost">Skip</button>
+          <button id="continueBtn" class="primary">Continue ▸</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Win -->
+    <div id="winOverlay" class="reveal" hidden>
+      <div class="card win">
+        <h2 id="winTitle">🏵 The journey is complete</h2>
+        <p id="winMeaning" class="meaning"></p>
+        <button id="winNewGame" class="primary">Play again</button>
+      </div>
+    </div>
+
+    <script type="module" src="js/game.js"></script>
+  </body>
+</html>

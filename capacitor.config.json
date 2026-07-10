@@ -1,0 +1,8 @@
+{
+  "appId": "com.naveenneog.pachisi",
+  "appName": "Pachisi",
+  "webDir": "web",
+  "android": {
+    "backgroundColor": "#120a06"
+  }
+}

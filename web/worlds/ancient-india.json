@@ -1,0 +1,65 @@
+{
+  "id": "ancient-india",
+  "title": "Journey Through Ancient India",
+  "subtitle": "one road across five ages",
+  "goalLabel": "The journey completes",
+  "goalMeaning": "Each arm of the board is an age of India — from the Indus cities to the Mughal courts. Carry your travellers through all of them and home.",
+  "theme": {
+    "bg": "#15100a",
+    "panel": "#201810",
+    "board": "#2c2013",
+    "cloth": "#3a2b18",
+    "line": "#d9a94e",
+    "accent": "#d9a94e",
+    "castle": "#eec877",
+    "text": "#f3e8ce",
+    "muted": "#bda27a",
+    "font": "'Georgia', 'Noto Serif', serif"
+  },
+  "voice": { "web": "en-IN", "azure": "en-IN-Neerja:DragonHDLatestNeural" },
+  "avatarLabel": "Your traveller",
+  "characters": [
+    { "id": "merchant", "name": "Merchant", "glyph": "\uD83D\uDC2A", "symbol": "Trade",     "color": "#e5484d" },
+    { "id": "scholar",  "name": "Scholar",  "glyph": "\uD83D\uDCDC", "symbol": "Knowledge", "color": "#46c76a" },
+    { "id": "artisan",  "name": "Artisan",  "glyph": "\uD83C\uDFFA", "symbol": "Craft",     "color": "#e8c24a" },
+    { "id": "pilgrim",  "name": "Pilgrim",  "glyph": "\uD83D\uDEB6", "symbol": "Faith",     "color": "#8b7bf0" }
+  ],
+  "teachings": {
+    "enter": [
+      { "text": "A traveller sets out along the great trunk road that has carried India's people for five thousand years.", "en": "The great road" },
+      { "text": "From the still centre the caravan departs. Every age of India lies ahead, waiting to be crossed.", "en": "The caravan departs" },
+      { "text": "The cowries decide the weather of your road; your wits decide the route.", "en": "Weather and wits" }
+    ],
+    "castle": [
+      { "text": "A caravanserai — a walled rest-house on the trade road, where travellers of every faith slept safe.", "en": "The caravanserai" },
+      { "text": "Here at a river crossing or temple town, no bandit may touch you. Trade, learn, and move on.", "en": "The safe town" },
+      { "text": "The old roads were dotted with sanctuaries. Rest, and let the season of danger pass.", "en": "Sanctuary" }
+    ],
+    "capture": [
+      { "text": "You overtake a rival caravan and send it back. Fortunes on the trade road were won and lost like this.", "en": "The rival caravan" },
+      { "text": "Empires rose by displacing those who came before. Your gain is another's long road back.", "en": "Rise and displace" },
+      { "text": "The market rewards the bold — but the wheel of commerce turns, and today's victor is tomorrow's debtor.", "en": "The wheel of commerce" }
+    ],
+    "captured": [
+      { "text": "Monsoon, bandits, or ill luck have sent your traveller back to the start. The road has always been perilous.", "en": "The perilous road" },
+      { "text": "A caravan scattered can be gathered again. Patience was the first virtue of the long-distance trader.", "en": "Gather again" },
+      { "text": "Even mighty cities fell and were rebuilt. Begin your crossing anew.", "en": "Rebuild" }
+    ],
+    "home": [
+      { "text": "A traveller completes the crossing of all five ages and comes home laden with story and trade.", "en": "The crossing done" },
+      { "text": "From the Indus to the Mughal court and back to the centre — one whole journey through time.", "en": "Through time" },
+      { "text": "One caravan is safely home. The others still wind through the ages.", "en": "Safely home" }
+    ],
+    "win": [
+      { "text": "All four travellers are home. You have carried them across the whole living history of India and back.", "en": "The whole history" },
+      { "text": "The journey through the ages is complete — Indus, Maurya, Gupta, Vijayanagara, Mughal, and home.", "en": "Five ages crossed" }
+    ],
+    "journey": [
+      { "at": 6,  "text": "The Indus Valley: you set out from the world's first great planned cities, Harappa and Mohenjo-daro.", "en": "Indus Valley" },
+      { "at": 13, "text": "The Mauryan age: Ashoka's edicts line the road, carved in stone and counselling non-violence.", "en": "The Mauryan age" },
+      { "at": 27, "text": "The Gupta age: the road runs bright with mathematics, astronomy, and the zero that changed the world.", "en": "The Gupta golden age" },
+      { "at": 41, "text": "Vijayanagara: you pass a southern empire of temple-cities, bazaars, and diamond markets.", "en": "Vijayanagara" },
+      { "at": 55, "text": "The Mughal age: the homeward road climbs past gardens and the great pachisi court of Fatehpur Sikri.", "en": "The Mughal court" }
+    ]
+  }
+}

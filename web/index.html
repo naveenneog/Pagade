@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Pachisi — the world's oldest journey game, reborn</title>
+    <meta name="description" content="Pachisi reborn as a living cultural experience. Throw cowrie shells, race four souls around the ancient cruciform board, and let every milestone read a teaching aloud. From Fate to Dharma: The Journey Home." />
+    <link rel="icon" href="assets/brand/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#120a06" />
+    <meta property="og:title" content="Pachisi — the world's oldest journey game, reborn" />
+    <meta property="og:description" content="Throw the cowries. Walk the four souls home. Every milestone reads a teaching aloud." />
+    <meta property="og:type" content="website" />
+    <style>
+      :root { --gold: #e8b64a; --ink: #f4e9d2; --muted: #b7a179; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body { background: #100a1a; color: var(--ink); font-family: 'Georgia', 'Noto Serif', serif; line-height: 1.6; overflow-x: hidden; }
+      a { color: inherit; }
+      .wrap { max-width: 1000px; margin: 0 auto; padding: 0 1.2rem; }
+
+      .hero { position: relative; text-align: center; padding: 4.5rem 1rem 3rem; background: radial-gradient(120% 90% at 50% 0%, rgba(232, 182, 74, 0.16), transparent 60%); }
+      .mark { font-size: 4rem; color: var(--gold); text-shadow: 0 0 40px rgba(232, 182, 74, 0.6); }
+      .hero h1 { font-size: clamp(2.4rem, 7vw, 4rem); margin: 0.4rem 0 0.2rem; letter-spacing: 0.1em; color: #ffe3a6; }
+      .hero .sub { font-size: clamp(1rem, 3vw, 1.35rem); color: #e8cfa0; font-style: italic; }
+      .hero .lede { max-width: 640px; margin: 1.2rem auto 2rem; color: var(--ink); }
+      .cta { display: inline-flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center; }
+      .btn { display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; font-weight: bold; border-radius: 14px; padding: 0.9rem 1.8rem; font-size: 1.1rem; }
+      .btn.play { color: #241200; background: linear-gradient(180deg, #ffcf7a, #e8a33d); box-shadow: 0 10px 30px rgba(232, 163, 61, 0.45); }
+      .btn.ghost { color: var(--ink); border: 1.5px solid rgba(232, 182, 74, 0.4); }
+      .btn:active { transform: translateY(1px); }
+
+      section { padding: 2.6rem 0; border-top: 1px solid rgba(232, 182, 74, 0.14); }
+      h2 { text-align: center; font-size: 1.6rem; color: #ffe6bb; letter-spacing: 0.04em; margin: 0 0 0.4rem; }
+      .section-sub { text-align: center; color: var(--muted); margin: 0 auto 1.8rem; max-width: 620px; font-style: italic; }
+
+      .worlds { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+      .world { border: 1px solid rgba(232, 182, 74, 0.24); border-radius: 16px; padding: 1.3rem; background: rgba(255, 255, 255, 0.03); }
+      .world .t { font-size: 1.2rem; color: #ffe6bb; }
+      .world .s { color: var(--muted); font-style: italic; font-size: 0.9rem; margin: 0.2rem 0 0.6rem; }
+      .world p { font-size: 0.92rem; color: var(--ink); margin: 0; }
+      .world .bar { height: 5px; border-radius: 4px; margin-top: 0.9rem; }
+
+      .feat { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; }
+      .card { border: 1px solid rgba(232, 182, 74, 0.2); border-radius: 14px; padding: 1.2rem; background: rgba(255, 255, 255, 0.02); }
+      .card .i { font-size: 1.7rem; }
+      .card h3 { margin: 0.4rem 0 0.3rem; font-size: 1.1rem; color: #ffe6bb; }
+      .card p { margin: 0; font-size: 0.9rem; color: var(--ink); }
+
+      .cowrie-row { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 1.4rem; }
+      .cowrie-chip { border: 1px solid rgba(232, 182, 74, 0.24); border-radius: 12px; padding: 0.7rem 1rem; text-align: center; min-width: 96px; background: rgba(0,0,0,0.2); }
+      .cowrie-chip b { font-size: 1.5rem; color: var(--gold); display: block; }
+      .cowrie-chip span { font-size: 0.78rem; color: var(--muted); }
+      .cowrie-chip.grace { border-color: var(--gold); }
+
+      footer { text-align: center; padding: 2.4rem 1rem 3rem; color: var(--muted); font-size: 0.85rem; }
+      footer a { color: var(--gold); }
+    </style>
+  </head>
+  <body>
+    <div class="hero">
+      <div class="mark" aria-hidden="true">ॐ</div>
+      <h1>Pachisi</h1>
+      <div class="sub">From Fate to Dharma — the Journey Home</div>
+      <p class="lede">
+        Long before Ludo, there was <strong>Pachisi</strong> — played on a cloth cross with
+        <strong>cowrie shells</strong> in the courts and villages of ancient India. It was never
+        just a game: every piece is a soul, every journey a life, and the still centre is home.
+        This is Pachisi rebuilt as a living cultural experience.
+      </p>
+      <div class="cta">
+        <a class="btn play" href="setup.html">▶ Play now</a>
+        <a class="btn ghost" href="play.html?world=dharma">Quick match</a>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <section>
+        <h2>Three worlds, one road</h2>
+        <p class="section-sub">The same ancient rules, dressed in three journeys through India's imagination.</p>
+        <div class="worlds">
+          <div class="world">
+            <div class="t">From Fate to Dharma</div>
+            <div class="s">the journey home</div>
+            <p>Every piece a soul; the Charkoni is fulfilment. The flagship journey, where the cowries are fate and your choices are dharma.</p>
+            <div class="bar" style="background:#e8b64a"></div>
+          </div>
+          <div class="world">
+            <div class="t">The Game of Kings</div>
+            <div class="s">the dice that moved a kingdom</div>
+            <p>The Mahabharata framing — where a single throw once decided the fate of an empire. Walk the razor's edge of righteousness.</p>
+            <div class="bar" style="background:#e6a63c"></div>
+          </div>
+          <div class="world">
+            <div class="t">Journey Through Ancient India</div>
+            <div class="s">one road across five ages</div>
+            <p>Each arm of the board is an age — Indus, Maurya, Gupta, Vijayanagara, Mughal. Cross them all and learn the history as you play.</p>
+            <div class="bar" style="background:#d9a94e"></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Fate meets strategy</h2>
+        <p class="section-sub">Six cowrie shells decide how far you move. The count landing mouth-up is your throw — and a 6, 10 or 25 is a <em>grace</em> that lets a soul onto the board and earns another throw.</p>
+        <div class="cowrie-row">
+          <div class="cowrie-chip grace"><b>25</b><span>0 up · grace</span></div>
+          <div class="cowrie-chip grace"><b>10</b><span>1 up · grace</span></div>
+          <div class="cowrie-chip"><b>2</b><span>2 up</span></div>
+          <div class="cowrie-chip"><b>3</b><span>3 up</span></div>
+          <div class="cowrie-chip"><b>4</b><span>4 up</span></div>
+          <div class="cowrie-chip"><b>5</b><span>5 up</span></div>
+          <div class="cowrie-chip grace"><b>6</b><span>6 up · grace</span></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>What makes it Pachisi</h2>
+        <div class="feat">
+          <div class="card"><div class="i">🐚</div><h3>Cowrie shells, not dice</h3><p>Authentic six-shell throws — the uncertainty the ancients called karma. The name means "twenty-five", the biggest throw.</p></div>
+          <div class="card"><div class="i">✦</div><h3>Castles &amp; captures</h3><p>Land on an opponent and send them home; rest on a castle square where none can touch you. Blockades wall off the road.</p></div>
+          <div class="card"><div class="i">🏵</div><h3>Every milestone teaches</h3><p>Entering, capturing, resting, coming home — each reveals a teaching, read aloud. Play the game, absorb the culture.</p></div>
+          <div class="card"><div class="i">👪</div><h3>Local pass-and-play</h3><p>Two to four players on one screen, seated around the cross like a family around the cloth. Warrior, Scholar, Merchant, Traveler.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Ready to walk the road?</h2>
+        <p class="section-sub">No sign-up, no install needed. Gather two to four and take turns.</p>
+        <div class="cta" style="display:flex;justify-content:center">
+          <a class="btn play" href="setup.html">▶ Start a game</a>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      Pachisi — a living-heritage reconstruction · built for the love of the game ·
+      Licensed under <a href="https://polyformproject.org/licenses/noncommercial/1.0.0">PolyForm Noncommercial 1.0.0</a>
+    </footer>
+
+    <script>
+      // Installed app / PWA opens straight into the lobby, not this landing page.
+      try {
+        const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        const isCapacitor = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+        if (standalone || isCapacitor) location.replace('setup.html');
+      } catch (e) { /* ignore */ }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+{
+  "id": "mahabharata",
+  "title": "The Game of Kings",
+  "subtitle": "the dice that moved a kingdom",
+  "goalLabel": "Dharma restored",
+  "goalMeaning": "In the epic, a game of dice decided the fate of an empire. Bring your four home not by fortune alone, but by walking the razor's edge of dharma.",
+  "theme": {
+    "bg": "#180c0b",
+    "panel": "#241110",
+    "board": "#2c1410",
+    "cloth": "#3d1c14",
+    "line": "#d99a3c",
+    "accent": "#e6a63c",
+    "castle": "#f0c05a",
+    "text": "#f6e7d0",
+    "muted": "#c09a72",
+    "font": "'Georgia', 'Noto Serif', serif"
+  },
+  "voice": { "web": "en-IN", "azure": "en-IN-Arjun:DragonHDLatestNeural" },
+  "avatarLabel": "Your warrior",
+  "characters": [
+    { "id": "arjuna",       "name": "Arjuna",       "glyph": "\uD83C\uDFF9", "symbol": "Focus",        "color": "#e5484d" },
+    { "id": "bhima",        "name": "Bhima",        "glyph": "\uD83D\uDCAA", "symbol": "Strength",     "color": "#46c76a" },
+    { "id": "yudhishthira", "name": "Yudhishthira", "glyph": "\u2696\uFE0F", "symbol": "Righteousness", "color": "#e8c24a" },
+    { "id": "draupadi",     "name": "Draupadi",     "glyph": "\uD83D\uDD25", "symbol": "Resolve",      "color": "#8b7bf0" }
+  ],
+  "teachings": {
+    "enter": [
+      { "text": "A warrior enters the field. In the great epic, too, every player was drawn onto the board by a throw of dice.", "en": "The field of play" },
+      { "text": "Yudhishthira staked all on the cowries and lost a kingdom. Enter, but never forget the cost of the game.", "en": "The stake" },
+      { "text": "The chariot rolls out from the centre. Let your aim be true.", "en": "The chariot" }
+    ],
+    "castle": [
+      { "text": "A fortress square. Even on the battlefield of Kurukshetra there were sanctuaries where no arrow could reach.", "en": "The fortress" },
+      { "text": "Krishna counsels patience. Hold your ground and let the reckless spend themselves against fate.", "en": "Counsel" },
+      { "text": "Here you are untouchable. Wisdom knows when to strike and when to stand still.", "en": "Stillness" }
+    ],
+    "capture": [
+      { "text": "You strike an opponent from the board, as warriors fell in the eighteen days of war. Victory and grief share one face.", "en": "The fall of a warrior" },
+      { "text": "The dice of the Kauravas sent the Pandavas into exile. Now your throw sends another back to the beginning.", "en": "Exile" },
+      { "text": "Arjuna hesitated to strike his kin. To act, yet act without hatred — that is the harder war.", "en": "The harder war" }
+    ],
+    "captured": [
+      { "text": "Your warrior is cast back to the Charkoni, as the Pandavas were cast into thirteen years of exile. Endure, and return.", "en": "The exile returns" },
+      { "text": "Fortune's wheel has turned against you. The epic teaches that even the righteous must suffer the fall.", "en": "The wheel turns" },
+      { "text": "Defeat is a teacher in disguise. Bhima remembered every humiliation and grew unbreakable.", "en": "The lesson of defeat" }
+    ],
+    "home": [
+      { "text": "A warrior completes the journey and reaches dharma's centre — the peace that no game of dice can gamble away.", "en": "The peace within" },
+      { "text": "After the war came the long walk to the mountains. One soul has finished that ascent.", "en": "The final ascent" },
+      { "text": "This piece has crossed the whole field and come home righteous. Three chariots still ride.", "en": "Come home" }
+    ],
+    "win": [
+      { "text": "All four are home. Where the epic's dice game brought ruin, your steady play has brought dharma back to the throne.", "en": "Dharma restored" },
+      { "text": "The kingdom is whole again. This is the victory Yudhishthira sought and finally, on the mountain, found.", "en": "The kingdom whole" }
+    ],
+    "journey": [
+      { "at": 6,  "text": "The chariot leaves its own lines and rides out onto the open field of Kurukshetra.", "en": "Onto the field" },
+      { "at": 13, "text": "You enter contested ground. Here alliances are made and broken with every throw.", "en": "Contested ground" },
+      { "at": 27, "text": "The tide of battle turns at the midpoint. From here the long road home begins.", "en": "The tide turns" },
+      { "at": 41, "text": "The war behind you, the exile nearly served. Steadiness now, not haste.", "en": "Exile's end" },
+      { "at": 55, "text": "Your own lines rise ahead — the last homeward march up the centre.", "en": "The homeward march" }
+    ]
+  }
+}

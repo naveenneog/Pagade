@@ -1,0 +1,21 @@
+{
+  "name": "pachisi",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pachisi — the ancient Indian cross-and-cowries journey game, reborn as a living cultural experience: throw cowrie shells, race four souls around the cruciform board, and every milestone reads a teaching aloud. From Fate to Dharma: The Journey Home.",
+  "scripts": {
+    "test": "node --test",
+    "serve": "node scripts/serve.mjs",
+    "cap:add": "cap add android",
+    "cap:sync": "cap sync android"
+  },
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "devDependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
+    "jsdom": "^29.1.1",
+    "playwright": "^1.61.1"
+  }
+}

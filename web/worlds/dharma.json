@@ -1,0 +1,68 @@
+{
+  "id": "dharma",
+  "title": "From Fate to Dharma",
+  "subtitle": "the journey home",
+  "goalLabel": "Moksha — the soul comes home",
+  "goalMeaning": "Every piece is a soul; the Charkoni is fulfillment. To bring all four home is to complete the journey from fate to dharma.",
+  "theme": {
+    "bg": "#140d1e",
+    "panel": "#1d1430",
+    "board": "#2a1a10",
+    "cloth": "#3a2413",
+    "line": "#c9973a",
+    "accent": "#e8b64a",
+    "castle": "#f0c862",
+    "text": "#f4e9d2",
+    "muted": "#b7a179",
+    "font": "'Georgia', 'Noto Serif', serif"
+  },
+  "voice": { "web": "en-IN", "azure": "en-IN-Arjun:DragonHDLatestNeural" },
+  "avatarLabel": "Your soul",
+  "characters": [
+    { "id": "warrior",  "name": "Warrior",  "glyph": "\u2694\uFE0F", "symbol": "Courage",     "color": "#e5484d" },
+    { "id": "scholar",  "name": "Scholar",  "glyph": "\uD83D\uDCDC", "symbol": "Wisdom",      "color": "#46c76a" },
+    { "id": "merchant", "name": "Merchant", "glyph": "\u2696\uFE0F", "symbol": "Prosperity",  "color": "#e8c24a" },
+    { "id": "traveler", "name": "Traveler", "glyph": "\uD83E\uDDED", "symbol": "Discovery",   "color": "#8b7bf0" }
+  ],
+  "teachings": {
+    "enter": [
+      { "text": "A soul steps from the still centre onto the winding path. The journey has begun.", "en": "Beginning" },
+      { "text": "Every life sets out from the same quiet source. Walk it well.", "en": "Setting out" },
+      { "text": "The cowries fall as fate; the choice of which piece to move is yours. Here fate meets will.", "en": "Fate and will" },
+      { "text": "To be born is to be given a road. Dharma is how you walk it.", "en": "The given road" }
+    ],
+    "castle": [
+      { "text": "A castle square — a refuge. Here no one can touch you; pause, breathe, and gather your resolve.", "en": "Refuge" },
+      { "text": "Even the traveller must rest. Stillness on the path is not delay but strength.", "en": "Rest" },
+      { "text": "Safe ground is earned, not given. Hold it, and let the storm of fate pass by.", "en": "Sanctuary" },
+      { "text": "The wise pause at the crossing four-and-twenty steps from home, and wait for their moment.", "en": "Patience" }
+    ],
+    "capture": [
+      { "text": "The wheel of fortune turns — an opponent is sent home to begin again. Take no pride; the wheel turns for all.", "en": "The turning wheel" },
+      { "text": "In the great dice-game of the Mahabharata, one throw changed the fate of kingdoms. So does yours.", "en": "One throw" },
+      { "text": "Victory here is only a moment. Act without attachment to its fruit.", "en": "Non-attachment" },
+      { "text": "You have unseated another soul. Karma remembers both the deed and the spirit behind it.", "en": "Karma" }
+    ],
+    "captured": [
+      { "text": "Your soul is sent back to the Charkoni. All that was gained returns to nothing — and yet you rise again.", "en": "Impermanence" },
+      { "text": "The fall is not the end; it is the invitation to begin more wisely.", "en": "Beginning again" },
+      { "text": "Loss visits everyone on the board. Meet it without bitterness and the road stays open.", "en": "Equanimity" }
+    ],
+    "home": [
+      { "text": "A soul completes its circuit and comes home. The long road from fate to dharma is fulfilled.", "en": "Fulfilment" },
+      { "text": "It went out into the world and returned changed. This is the whole of a life.", "en": "Return" },
+      { "text": "One piece rests in the centre now, free of the wheel. Three journeys remain.", "en": "Liberation" }
+    ],
+    "win": [
+      { "text": "All four souls are home. The player has walked the whole journey — from the throw of fate to the peace of dharma.", "en": "Moksha" },
+      { "text": "The circle closes where it began, in the still centre. This is the victory the ancients called liberation.", "en": "The circle closes" }
+    ],
+    "journey": [
+      { "at": 6,  "text": "The soul reaches the tip of its own arm and turns outward into the wide world.", "en": "Into the world" },
+      { "at": 13, "text": "You cross into a new quarter of the board. Every stage of life has its own weather.", "en": "A new stage" },
+      { "at": 27, "text": "Halfway round. The going-out is done; from here, all roads bend toward home.", "en": "The turning point" },
+      { "at": 41, "text": "The far country lies behind you. What you carry now is only what you have become.", "en": "The far country" },
+      { "at": 55, "text": "Your own arm rises ahead. The homeward climb up the centre begins.", "en": "The homeward climb" }
+    ]
+  }
+}

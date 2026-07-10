@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Pachisi — New Game</title>
+    <link rel="icon" href="assets/brand/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#120a06" />
+    <style>
+      :root { --gold: #e8b64a; --ink: #f4e9d2; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; -webkit-text-size-adjust: 100%; }
+      * { -webkit-tap-highlight-color: transparent; }
+      button, select, .pill, .card, .chip { touch-action: manipulation; }
+      body {
+        background: radial-gradient(120% 90% at 50% 12%, rgba(232, 182, 74, 0.12), transparent 55%), #120a1c;
+        color: var(--ink); font-family: 'Georgia', 'Noto Serif', serif;
+        padding: calc(1.4rem + env(safe-area-inset-top, 0px)) 1rem calc(2rem + env(safe-area-inset-bottom, 0px));
+      }
+      .wrap { max-width: 900px; margin: 0 auto; }
+      header { text-align: center; margin-bottom: 1.4rem; }
+      .brand { font-size: 2.6rem; letter-spacing: 0.14em; color: #ffe3a6; text-shadow: 0 0 30px rgba(232, 182, 74, 0.55); }
+      .brand .mark { display: block; font-size: 3rem; margin-bottom: 0.2rem; }
+      .tag { color: #e8cfa0; font-style: italic; margin-top: 0.3rem; }
+      h2 { font-size: 0.92rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); border-bottom: 1px solid rgba(232, 182, 74, 0.25); padding-bottom: 0.4rem; margin: 1.8rem 0 0.9rem; }
+      .grid { display: grid; gap: 0.7rem; }
+      .themes { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+      .card { text-align: left; cursor: pointer; border: 1.5px solid rgba(232, 182, 74, 0.3); border-radius: 14px; padding: 0.9rem 1rem; background: rgba(255, 255, 255, 0.03); transition: transform 0.15s, border-color 0.15s, background 0.15s; color: inherit; font: inherit; }
+      .card:hover { transform: translateY(-2px); }
+      .card.sel { border-color: var(--accent, var(--gold)); background: color-mix(in srgb, var(--accent, var(--gold)) 14%, transparent); box-shadow: 0 0 0 1px var(--accent, var(--gold)) inset, 0 8px 26px rgba(0, 0, 0, 0.5); }
+      .card .t { font-size: 1.12rem; color: #ffe6bb; }
+      .card .s { font-size: 0.82rem; color: #c7ac82; font-style: italic; margin-top: 0.2rem; }
+      .swatch { width: 100%; height: 6px; border-radius: 4px; margin-top: 0.7rem; background: var(--accent, var(--gold)); opacity: 0.85; }
+      .row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+      .pill { cursor: pointer; font: inherit; color: var(--ink); background: rgba(255, 255, 255, 0.05); border: 1.5px solid rgba(232, 182, 74, 0.3); border-radius: 999px; padding: 0.6rem 1.1rem; min-height: 44px; display: inline-flex; align-items: center; transition: all 0.15s; }
+      .pill.sel { background: var(--gold); color: #241200; border-color: var(--gold); font-weight: bold; }
+      .players { display: grid; gap: 0.7rem; }
+      .prow { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; border: 1px solid rgba(232, 182, 74, 0.22); border-radius: 12px; padding: 0.7rem 0.8rem; background: rgba(255, 255, 255, 0.02); }
+      .dot { width: 22px; height: 22px; border-radius: 50% 50% 50% 6px; flex: 0 0 auto; background: var(--pc); box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.4), 0 0 14px var(--pc); }
+      .pname { font: inherit; font-size: 1rem; color: var(--ink); background: transparent; border: 0; border-bottom: 1px dashed rgba(232, 182, 74, 0.4); padding: 0.25rem 0.2rem; width: 120px; }
+      .pname:focus { outline: none; border-bottom-color: var(--gold); }
+      .seat { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pc); border: 1px solid var(--pc); border-radius: 999px; padding: 0.12rem 0.5rem; }
+      .card:focus-visible, .pill:focus-visible, .chip:focus-visible, #begin:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+      .chars { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-left: auto; }
+      .chip { cursor: pointer; font-size: 1.3rem; line-height: 1; width: 46px; height: 46px; display: grid; place-items: center; border-radius: 12px; border: 1.5px solid rgba(232, 182, 74, 0.28); background: rgba(0, 0, 0, 0.25); transition: all 0.12s; position: relative; }
+      .chip .cn { position: absolute; bottom: -1.1rem; font-size: 0.58rem; color: #b79b74; white-space: nowrap; }
+      .chip.sel { border-color: var(--pc, var(--gold)); box-shadow: 0 0 0 2px var(--pc, var(--gold)) inset; transform: translateY(-1px); }
+      .actions { text-align: center; margin-top: 2.4rem; }
+      #begin { font: inherit; font-size: 1.25rem; font-weight: bold; letter-spacing: 0.04em; color: #241200; background: linear-gradient(180deg, #ffcf7a, #e8a33d); border: 0; border-radius: 16px; padding: 1rem 2.6rem; cursor: pointer; box-shadow: 0 10px 30px rgba(232, 163, 61, 0.45); }
+      #begin:active { transform: translateY(1px); }
+      .hint { text-align: center; color: #8a745a; font-size: 0.85rem; margin-top: 0.8rem; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <span class="mark" aria-hidden="true">ॐ</span>
+        <div class="brand">Pachisi</div>
+        <div class="tag">Throw the cowries. Walk the four souls home. From fate to dharma.</div>
+      </header>
+
+      <h2>Choose your world</h2>
+      <div id="themes" class="grid themes"></div>
+
+      <h2>Players</h2>
+      <div id="counts" class="row" style="margin-bottom: 0.9rem;"></div>
+      <div id="players" class="players"></div>
+
+      <div class="actions">
+        <button id="begin">Begin the journey →</button>
+        <div class="hint">Local pass-and-play · take turns on one screen</div>
+      </div>
+    </div>
+    <script type="module" src="js/setup.js"></script>
+  </body>
+</html>

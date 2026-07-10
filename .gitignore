@@ -1,0 +1,11 @@
+node_modules/
+.DS_Store
+*.log
+web/assets/generated/
+tooling/_shots/
+tooling/_qa/
+tooling/__pycache__/
+*.pyc
+android/
+.gradle/
+*.apk
