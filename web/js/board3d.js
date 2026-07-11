@@ -416,7 +416,7 @@ function buildMonuments() {
         const m = n.material.clone();
         m.metalness = Math.min(m.metalness || 0, 0.08);
         m.roughness = Math.max(m.roughness || 0.6, 0.6);
-        if (m.map) { m.emissiveMap = m.map; m.emissive = new THREE.Color(0xffffff); m.emissiveIntensity = 0.32; } // gently self-lit so distant monuments read against the dark night
+        if (m.map) { m.emissiveMap = m.map; m.emissive = new THREE.Color(0xffffff); m.emissiveIntensity = 0.5; } // self-lit with its OWN texture colours so the rich carving reads vividly against the dark night
         n.material = m;
       }
     });
@@ -424,7 +424,7 @@ function buildMonuments() {
     const outer = new THREE.Group();
     outer.add(inner);
     outer.position.set(x, MON_GROUND_Y, z);
-    outer.rotation.y = Math.atan2(x, z);   // aim the monument's front toward the board centre
+    outer.rotation.y = Math.atan2(-x, 16 - z);   // aim the richly-textured front (+Z) toward the default camera
     outer.userData.monKey = key;
     boardGroup.add(outer);
   });

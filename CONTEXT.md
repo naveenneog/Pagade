@@ -154,6 +154,17 @@ mahabharata). Add a world = a new `worlds/<id>.json` + register the id in `setup
   lists `[key, x, z, height]`; `buildMonuments()` clones + normalises each to height, rests it on the
   ground ring, aims it at the board centre, and makes it **self-lit** (`emissiveMap = map`,
   intensity 0.32) so it glows out of the night. Procedural sky/skyline stays as the far backdrop.
+- **Rich colour (v1.5.1):** the first monuments looked pale/ivory-streaky — the concept-projection
+  textured the front but the ivory `ivory_bg.py` background bled onto the ±X side faces (the
+  projection only textures the ±Z faces well). Fixes: (1) `tooling/richbg.py` re-composites each
+  concept on a background of its OWN **dominant object colour** (+ saturation/contrast boost) so
+  side/back faces read as matching stone, not cream; (2) `buildMonuments()` aims the richly-textured
+  front (+Z) **toward the default camera** (`rotation.y = atan2(-x, 16 - z)`), not the board centre,
+  so the viewer sees the detailed side; (3) monument `emissiveIntensity` 0.32 -> **0.5** so the true
+  texture colours read against the warm dark scene. Hunyuan's own PBR texture (`/generation_all`,
+  which would avoid projection entirely) was **broken server-side** (`NameError`) and every alt
+  textured-3D Space (Hunyuan3D-2.1, 2mini-Turbo, TRELLIS) was down — so concept-projection + richbg
+  is the working path; revisit `generation_all` when the Space is fixed.
 - **Composition (hard-won):** the board camera looks down ~30°, so anything taller than the camera
   (~y10) or near the horizon gets **clipped at the top edge / seen from below**. The fix was NOT
   distance — it was tilting the **camera aim up**: `updateCamera()` does
